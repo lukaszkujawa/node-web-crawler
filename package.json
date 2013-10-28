@@ -1,0 +1,15 @@
+{
+  "name": "web-crawler",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node monitor.js"
+  },
+  "dependencies": {
+    "express": "3.4.2",
+    "jade": "*",
+    "cheerio": "*",
+    "nano": "*",
+    "async": "*"
+  }
+}
