@@ -10,12 +10,11 @@ agent.init = function( options ) {
 	this.middleware = [];
 	this._queue = async.queue( function(task, callback) { 
 		self.worker(task, callback) }
-		,5 );
+		,( options.workers == undefined ? 1 : options.workers ) );
 }
 
 agent.queue = function( url ) {
 	var self = this;
-
 	process.nextTick(function(){
 		self._queue.push( Url.parse( url ) );
 	});
@@ -50,7 +49,12 @@ agent.onRequest = function( res, task, callback ) {
 	var self = this,
 		data = '';
 
-	res.setEncoding('utf8');
+	if( res.headers['content-type'] != undefined && res.headers['content-type'].match( /^text/ ) ) {
+		res.setEncoding('utf8');
+	}
+	else {
+		res.setEncoding( 'binary' );
+	}
 
 	res.on('data', function (chunk) {
 		data += chunk;
@@ -58,6 +62,7 @@ agent.onRequest = function( res, task, callback ) {
 
 	res.on('end', function() {
 		self.handleData( data, task, res, callback );
+		data = null;
 	});
 }
 
@@ -75,10 +80,10 @@ agent.handleData = function( data, task, res, callback ) {
 		chain.push( self.getJobFunction( job, data, env ) );
 	}
 
-	async.series(chain,
-				function(err, results){
-					callback();
-	});
+	async.series( chain, callback );
+
+	chain = null;
+	data = null;
 }
 
 agent.getJobFunction = function( job, data, env ) {

@@ -1,12 +1,11 @@
 var couchdb = require( '../couchdb' );
+var async = require( 'async' );
 
 exports = module.exports = WebDoc;
 
 function WebDoc( options ) {
 	this.fields = {
-		type: "text/html",
-		lenght: 0,
-		content: null,
+		contentType: "",
 		lastModified: new Date(),
 		schema: "document",
 		hostname: "",
@@ -15,9 +14,15 @@ function WebDoc( options ) {
 		protocol: "http"
 	};
 
+	this._data = null;
+
 	if( typeof( options )  == 'object' ) {
 		this.initFromObject( options );
 	}
+}
+
+WebDoc.prototype.setData = function( data ) {
+	this._data = data;
 }
 
 WebDoc.prototype.initFromObject = function( object ) {
@@ -27,11 +32,46 @@ WebDoc.prototype.initFromObject = function( object ) {
 }
 
 WebDoc.prototype.insert = function( callback ) {
-	couchdb.getDB().insert( 
-		this.getFields(), this.getId(), function(err, body) {
-			if( callback != undefined ) callback();
+	var self = this,
+		db = couchdb.getDB();
+
+	async.waterfall([
+	    function(callback){
+	        self._insertDocument( callback );
+	    },
+	    function(id, rev, callback){
+	        self._insertAttachment( id, rev, callback );
+	    }
+	], function() {
+	   callback();
 	});
 }
+
+WebDoc.prototype._insertDocument = function( callback ) {
+	var self = this,
+		db = couchdb.getDB(),
+		id = self.getId();
+
+	db.insert( self.getFields(), id, function(err, body) {
+		callback( err, id, body != undefined ? body.rev : '1' );
+	});
+}
+
+WebDoc.prototype._insertAttachment = function( id, rev, callback ) {
+	var self = this,
+		db = couchdb.getDB(),
+		contentType = self.fields.contentType;
+	
+
+	if( self._data == null || self._data.length == 0 ) {
+		return callback();
+	}
+
+	db.attachment.insert( id, 'content', new Buffer( self._data, "binary" ), contentType, {rev: rev}, function(err, body) { 
+		callback();
+	});
+}
+
 
 WebDoc.prototype.getFields = function() {
 	return this.fields;
@@ -40,5 +80,5 @@ WebDoc.prototype.getFields = function() {
 WebDoc.prototype.getId = function() {
 	var f = this.fields;
 	
-	return 'doc-' + '-' + f.protocol + ':' +  f.port + '-' + f.hostname + f.uri;
+	return 'doc-' + f.protocol + ':' +  f.port + '-' + f.hostname + f.uri;
 }

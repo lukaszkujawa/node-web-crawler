@@ -1,12 +1,14 @@
-var $ = require( 'jquery' );
 var async = require( 'async' );
 var UrlDoc = require( '../storage/doc/urldoc' );
+var cheerio = require('cheerio');
 
 exports = module.exports = Driller;
 
 function Driller(options) {
 	this.options = {
 		domain: false,
+		selector: "a",
+		attribute: "href"
 	};
 
 	this.relativeDomain = new RegExp('^\/[^\/]');
@@ -29,24 +31,39 @@ Driller.prototype.initOptions = function( options ) {
 
 Driller.prototype.setDomain = function( domain ) {
 	var domain = domain.replace( /\./, '\.' );
-	domain = '^http[s]{0,1}:\/\/(.*?)' + domain + '(\/|$)'; 
+	domain = '^http[s]{0,1}:\/\/([^\/]*?)' + domain + '(\/|$)'; 
 	this.options[ "domain" ] = new RegExp( domain, 'i' );
 }
 
 Driller.prototype.execute = function(callback, data, env) {
-	var self = this;
-	var docs = [];
+	if( env.res.headers['content-type'] == undefined || ! env.res.headers['content-type'].match( /^text\/html/) ) {
+		return callback();
+	}
 
-	$( data ).find( 'a' ).each(function() {
-		var url = self.normaliseUrl( $(this).attr('href'), env );
+	var $ = cheerio.load( data ),
+		self = this,
+		docs = [];
+
+
+	$( self.options.selector ).each( function( i, el ) {
+		var url = $(this).attr( self.options.attribute );
+
+		if( url == undefined ) {
+			return;
+		}
+
+		url = self.normaliseUrl( url, env );
 
 		if( self.isValidUrl( url ) ) {
-			var doc = new UrlDoc( $(this).attr('href') );
-			docs.push( self.getDocInsertFunction( doc ) );
+			docs.push( 
+				self.getDocInsertFunction( 
+					new UrlDoc( url ) ) );
 		}
 	});
 
 	async.parallel( docs, callback );
+	$ = null;
+	docs = null;
 }
 
 Driller.prototype.getDocInsertFunction = function( doc ) {
@@ -57,7 +74,7 @@ Driller.prototype.getDocInsertFunction = function( doc ) {
 
 Driller.prototype.normaliseUrl = function( url, env ) {
 	if( url.match( this.relativeDomain ) ) {
-		return 'http://' + env.task.hostname + url;
+		return env.task.protocol + '//' + env.task.hostname + url;
 	}
 
 	return url;			

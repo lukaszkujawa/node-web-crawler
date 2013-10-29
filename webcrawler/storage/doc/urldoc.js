@@ -27,8 +27,13 @@ UrlDoc.pop = function( callback ) {
 		doc.fields.visited = 1;
 		doc.fields.lastModified = new Date();
 
-		doc.insert( function() {
-			callback( doc );
+		doc.insert( function( status, err ) {
+			if( err ) {
+				UrlDoc.pop( callback );
+			}
+			else {
+				callback( doc );
+			}
 		});	
 	});
 }
@@ -45,7 +50,10 @@ UrlDoc.prototype.getId = function() {
 UrlDoc.prototype.insert = function( callback ) {
 	couchdb.getDB().insert( 
 		this.getFields(), this.getId(), function(err, body) {
-			if( callback != undefined ) callback();
+
+			if( callback != undefined ) { 
+				callback( null, err );
+			}
 	});
 }
 
