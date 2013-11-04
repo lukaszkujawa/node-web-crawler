@@ -10,6 +10,8 @@
     "jade": "*",
     "cheerio": "*",
     "nano": "*",
-    "async": "*"
+    "async": "*",
+    "mocha": "*",
+    "optimist": "*"
   }
 }

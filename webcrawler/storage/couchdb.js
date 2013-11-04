@@ -1,9 +1,13 @@
 var couchdb = exports = module.exports = {};
 
-couchdb.init = function() {
+couchdb.init = function(options) {
 	this.options = { 
 		host: "http://127.0.0.1:5984",
 		dbname: "web-crawler" };
+
+	for( i in options ) {
+		this.options[ i ] = options[ i ];
+	}
 
 	this.nano = require('nano')( this.options.host );
 	this.db = this.nano.use( this.options.dbname );

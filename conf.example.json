@@ -1,0 +1,14 @@
+{
+	"workers": 2,
+	"seedUrl": "http://stackoverflow.com/",
+	"database": {
+		"name": "web-crawler-stackoverflow",
+		"rebuild": true
+	},
+	"jobs": [
+		{ "name": "logger" },
+		{ "name": "saver" },
+		{ "name": "driller", "domainRestriction": "stackoverflow.com" },
+		{ "name": "scheduler" }
+	]
+}

@@ -11,12 +11,13 @@ function WebDoc( options ) {
 		hostname: "",
 		uri: "",
 		port: 80,
-		protocol: "http"
+		protocol: "http",
+		source: null
 	};
 
 	this._data = null;
 
-	if( typeof( options )  == 'object' ) {
+	if( typeof( options ) == 'object' ) {
 		this.initFromObject( options );
 	}
 }
@@ -62,11 +63,10 @@ WebDoc.prototype._insertAttachment = function( id, rev, callback ) {
 		db = couchdb.getDB(),
 		contentType = self.fields.contentType;
 	
-
 	if( self._data == null || self._data.length == 0 ) {
 		return callback();
 	}
-
+	
 	db.attachment.insert( id, 'content', new Buffer( self._data, "binary" ), contentType, {rev: rev}, function(err, body) { 
 		callback();
 	});
@@ -80,5 +80,5 @@ WebDoc.prototype.getFields = function() {
 WebDoc.prototype.getId = function() {
 	var f = this.fields;
 	
-	return 'doc-' + f.protocol + ':' +  f.port + '-' + f.hostname + f.uri;
+	return 'doc-' + f.protocol +  f.port + '-' + f.hostname + f.uri;
 }

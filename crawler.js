@@ -8,35 +8,47 @@ http.createServer(function (req, res) {
 }).listen(9999);
 */
 
-var async = require( 'async' );
-var job = require('./webcrawler/job');
-var couchdb = require( './webcrawler/storage/couchdb' );
-var robot = require('./webcrawler/agent');
-var WORKERS_COUNT = 20;
+var argv = require('optimist').argv;
+var fs = require('fs');
 
-robot.init({workers: WORKERS_COUNT});
-robot.use( new job.Logger() );
-robot.use( new job.Saver() );
-robot.use( new job.Driller( { domain: "flickr.com" } ) );
-robot.use( new job.Driller( { selector: "img", attribute: "src" } ) );
-robot.use( new job.Scheduler() );
+var agent = require('./webcrawler/agent');
+var Config = require( './webcrawler/config' );
 
-couchdb.init();
+console.log( "" );
 
-async.waterfall([
-  function(callback){
-    callback();
-    //couchdb.destroy( callback );
-  },
-  function(callback){
-    couchdb.create( callback );
+if( argv.c == undefined ) {
+  console.log( "Usage: node crawler.js -c [config.json]" );
+  console.log( "" );
+  console.log( "Example: node crawler.js -c [conf.example.json]" );
+  console.log( "" );
+  process.exit(1);
+}
+
+var file = __dirname + '/' + argv.c;
+
+fs.readFile(file, 'utf8', function (err, data) {
+
+  if (err) {
+    console.log( 'Unable to load "%s"', file );
+    console.log( '' );
+    console.log( 'Error message:' );
+    console.log( err );
+    console.log( '' );
+    process.exit(1);
   }
-], function (err, result) {
-	for( var i = 0 ; i < WORKERS_COUNT ; i++ ) {
-    setTimeout(function () {
-      robot.queue( 'http://www.flickr.com/explore' );
-    }, 500 * i );
-  }   
+
+  try {
+    data = JSON.parse(data);
+  }
+  catch( e ) {
+    console.log( 'Unable to parse config file "%s"', file );
+    console.log( '' );
+    console.log( 'Error message:' );
+    console.log( e );
+    console.log( '' );
+    process.exit(1);
+  }
+
+  agent.initFromConfig( new Config( data ) );
+
 });
-
-

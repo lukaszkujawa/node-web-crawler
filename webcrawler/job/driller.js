@@ -5,34 +5,20 @@ var cheerio = require('cheerio');
 exports = module.exports = Driller;
 
 function Driller(options) {
-	this.options = {
-		domain: false,
-		selector: "a",
-		attribute: "href"
-	};
-
 	this.relativeDomain = new RegExp('^\/[^\/]');
 
+	this.options = {
+		domainRestriction: false,
+		selector: "a",
+		attribute: "href",
+		overwrite: [],
+		normalisers: [],
+		filters: [],
+		verbose: false
+	};
+
+	this._links = {};
 	this.initOptions( options );
-}
-
-Driller.prototype.initOptions = function( options ) {
-	if( options ) {
-		for( i in options ) {
-			if( i == "domain" ) {
-				this.setDomain( options[ i ] );
-			}
-			else {
-				this.options[ i ] = options[ i ];
-			}
-		}
-	}
-}
-
-Driller.prototype.setDomain = function( domain ) {
-	var domain = domain.replace( /\./, '\.' );
-	domain = '^http[s]{0,1}:\/\/([^\/]*?)' + domain + '(\/|$)'; 
-	this.options[ "domain" ] = new RegExp( domain, 'i' );
 }
 
 Driller.prototype.execute = function(callback, data, env) {
@@ -44,7 +30,6 @@ Driller.prototype.execute = function(callback, data, env) {
 		self = this,
 		docs = [];
 
-
 	$( self.options.selector ).each( function( i, el ) {
 		var url = $(this).attr( self.options.attribute );
 
@@ -55,15 +40,56 @@ Driller.prototype.execute = function(callback, data, env) {
 		url = self.normaliseUrl( url, env );
 
 		if( self.isValidUrl( url ) ) {
-			docs.push( 
-				self.getDocInsertFunction( 
-					new UrlDoc( url ) ) );
+			var doc = new UrlDoc( url );
+			doc.setOverwrite( self.getOverwrite( url ) );
+			docs.push( self.getDocInsertFunction( doc ) );
 		}
 	});
 
 	async.parallel( docs, callback );
-	$ = null;
-	docs = null;
+}
+
+Driller.prototype.addOverwriteRule = function( rule ) {
+	this.options.overwrite.push( rule );
+}
+
+Driller.prototype.addNormaliser = function( rule, funct ) {
+	rule = new RegExp( rule );
+	this.options.normalisers.push( { rule: rule, process: funct } );
+}
+
+Driller.prototype.addFilter = function( filter ) {
+	this.options.filters.push( filter );
+}
+
+Driller.prototype.initOptions = function( options ) {
+	if( options ) {
+		for( i in options ) {
+			if( i == "domainRestriction" ) {
+				this.setDomainRestriction( options[ i ] );
+			}
+			else {
+				this.options[ i ] = options[ i ];
+			}
+		}
+	}
+}
+
+Driller.prototype.setDomainRestriction = function( domain ) {
+	var domain = domain.replace( /\./, '\.' );
+	domain = '^http[s]{0,1}:\/\/([^\/]*?)' + domain + '(\/|$)'; 
+	this.options[ "domain" ] = new RegExp( domain, 'i' );
+}
+
+Driller.prototype.getOverwrite = function( url ) {
+	for( i in this.options.overwrite ) {
+		var rule = this.options.overwrite[ i ];
+		if( url.match( rule.pattern ) ) {
+			return rule.timeDiff;
+		}
+	}
+
+	return -1;
 }
 
 Driller.prototype.getDocInsertFunction = function( doc ) {
@@ -74,16 +100,40 @@ Driller.prototype.getDocInsertFunction = function( doc ) {
 
 Driller.prototype.normaliseUrl = function( url, env ) {
 	if( url.match( this.relativeDomain ) ) {
-		return env.task.protocol + '//' + env.task.hostname + url;
+		url = env.task.protocol + '//' + env.task.hostname + url;
+	}
+
+	for( i in this.options.normalisers ) {
+		var norm = this.options.normalisers[ i ];
+		if( url.match( norm.rule ) ) {
+			url = norm.process( url );
+		}
 	}
 
 	return url;			
 }
 
 Driller.prototype.isValidUrl = function( url ) {
-	if( this.options.domain ) {
-		return url.match( this.options.domain );
+	/**
+	 *	Ignore links like "mailto:" or "javascript:"
+	 */
+	var protocol = url.match( /^[\ ]*([a-zA-Z0-0]+):/ );
+	if( protocol && protocol[1].toLowerCase() != 'http' && protocol[1].toLowerCase() != 'https' ) {
+		return false;
 	}
 
-	return true;
+	if( this.options.domain && ! url.match( this.options.domain ) ) {
+		return false;
+	}
+
+	/**
+	 *	@todo: release some data to avoid memory leak
+	 */
+	if( this._links[ url ] == undefined ) {
+		this._links[ url ] = 1;
+		return true;
+	}
+
+	this._links[ url ] += 1;
+	return false;
 }

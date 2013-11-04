@@ -13,6 +13,8 @@ function UrlDoc( options ) {
 		visited: 0
 	}
 
+	this.overwriteTimeDiff = -1;
+
 	if( typeof( options )  == 'string' ) {
 		this.initFromUrl( options );
 	}
@@ -38,6 +40,21 @@ UrlDoc.pop = function( callback ) {
 	});
 }
 
+UrlDoc.getById = function( id, callback ) {
+	couchdb.getDB().get( id, function( err, body ) {
+		if( err ) {
+			throw new Exception( "Unable to load a url document: " + id );
+		}
+
+		var doc = new UrlDoc( body );
+		callback( doc );
+	});
+}
+
+UrlDoc.prototype.setOverwrite = function( timeDiff ) {
+	this.overwriteTimeDiff = timeDiff;
+}
+
 UrlDoc.prototype.getUrl = function() {
 	var f = this.fields;
 	return f.protocol + '://' + f.hostname + f.uri;
@@ -48,12 +65,35 @@ UrlDoc.prototype.getId = function() {
 }
 
 UrlDoc.prototype.insert = function( callback ) {
+	var self = this;
 	couchdb.getDB().insert( 
 		this.getFields(), this.getId(), function(err, body) {
-
-			if( callback != undefined ) { 
+			if( err && self.overwriteTimeDiff > -1 && err.status_code == 409 ) {
+				if( self.fields._rev != undefined ) {
+					callback( null, err );
+				}
+				else {
+					self.reinsert( callback );
+				}
+			}
+			else if( callback != undefined ) { 
 				callback( null, err );
 			}
+	});
+}
+
+UrlDoc.prototype.reinsert = function( callback ) {
+	var self = this;
+	UrlDoc.getById( this.getId(), function( doc ) { 
+		var timeDiff = new Date().getTime() - new Date( doc.fields.lastModified ).getTime();
+
+		if( timeDiff > self.overwriteTimeDiff ) {
+			self.fields._rev = doc.fields._rev;
+			self.insert( callback );
+		}
+		else {
+			callback();
+		}
 	});
 }
 

@@ -13,7 +13,8 @@ Saver.prototype.execute = function(callback, data, env) {
 		hostname: env.task.host,
 		uri: env.task.path,
 		port: env.task.port == null ? 80 : env.task.port,
-		protocol: env.task.protocol
+		protocol: env.task.protocol,
+		source: env.task.source == undefined ? null : env.task.source
 	});
 
 	webDoc.setData( data );
