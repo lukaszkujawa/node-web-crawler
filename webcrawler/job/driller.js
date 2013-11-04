@@ -5,8 +5,6 @@ var cheerio = require('cheerio');
 exports = module.exports = Driller;
 
 function Driller(options) {
-	this.relativeDomain = new RegExp('^\/[^\/]');
-
 	this.options = {
 		domainRestriction: false,
 		selector: "a",
@@ -77,7 +75,7 @@ Driller.prototype.initOptions = function( options ) {
 
 Driller.prototype.setDomainRestriction = function( domain ) {
 	var domain = domain.replace( /\./, '\.' );
-	domain = '^http[s]{0,1}:\/\/([^\/]*?)' + domain + '(\/|$)'; 
+	domain = '^http[s]{0,1}:\/\/(([^\/]+?\\.)|())' + domain + '(\/|$)'; 
 	this.options[ "domain" ] = new RegExp( domain, 'i' );
 }
 
@@ -99,8 +97,25 @@ Driller.prototype.getDocInsertFunction = function( doc ) {
 }
 
 Driller.prototype.normaliseUrl = function( url, env ) {
-	if( url.match( this.relativeDomain ) ) {
+	/**
+	 *	attach domain name to "/article/test"
+	 */
+	if( url.match( /^\/[^\/]+/ ) || url == '/' ) {
 		url = env.task.protocol + '//' + env.task.hostname + url;
+	}
+
+	/**
+	 *	attach url to relative link f.e. "hello/world"
+	 */
+	if( url.match( /^[^\/:]+(\/|$)/ ) ) {
+		url = env.task.href + '/' + url;
+	}
+
+	/**
+	 *	attach protocol to "//example.com/"
+	 */
+	if( url.match( /^\/\// ) ) {
+		url = env.task.protocol + url;
 	}
 
 	for( i in this.options.normalisers ) {
@@ -109,6 +124,8 @@ Driller.prototype.normaliseUrl = function( url, env ) {
 			url = norm.process( url );
 		}
 	}
+
+	url = url.replace( /[^:]\/[\/]+/, '/' );
 
 	return url;			
 }
@@ -121,6 +138,7 @@ Driller.prototype.isValidUrl = function( url ) {
 	if( protocol && protocol[1].toLowerCase() != 'http' && protocol[1].toLowerCase() != 'https' ) {
 		return false;
 	}
+
 
 	if( this.options.domain && ! url.match( this.options.domain ) ) {
 		return false;

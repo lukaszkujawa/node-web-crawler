@@ -23,6 +23,11 @@ couchdb.getNano = function() {
 
 couchdb.destroy = function( callback ) {
 	this.nano.db.destroy( this.options.dbname, function(err, body) {
+		if( err ) {
+			console.log( err );
+			throw new Exception( err.code );
+		}
+
 		callback();
 	});
 }
@@ -65,6 +70,11 @@ couchdb.createDesignDoc = function( callback ) {
 	var db = this.db;
 
 	db.insert( desQueue, desQueue._id, function(err, body) {
+		if( err && err.code == 'ECONNREFUSED' ) {
+			console.log( err );
+			throw new Exception( err.code );
+		}
+
 		db.insert( desDocument, desDocument._id, function(err, body) {
         	callback();
     	});
