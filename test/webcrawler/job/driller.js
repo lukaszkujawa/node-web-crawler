@@ -44,8 +44,8 @@ describe('Driller', function(){
 				  expect: 'http://www.testing.com/hello/id/5?_a=1' },
 				
 				{ input: 'hello', 
-				  env: 'https://www.testing.com/example/id/2', 
-				  expect: 'https://www.testing.com/example/id/2/hello' },
+				  env: 'https://www.testing.com/example/id/2?a=123', 
+				  expect: 'https://www.testing.com/example/id/hello' },
 
 				{ input: '//www.testing.com/hello', 
 				  env: 'http://www.testing.com/example/id/3', 
@@ -53,7 +53,11 @@ describe('Driller', function(){
 
 				{ input: '/', 
 				  env: 'http://www.testing.com/example/id/3', 
-				  expect: 'http://www.testing.com/' }
+				  expect: 'http://www.testing.com/' },
+
+				{ input: 'privacy.php', 
+				  env: 'http://www.testing.com/download.php?a=10', 
+				  expect: 'http://www.testing.com/privacy.php' },
 
 			];
 

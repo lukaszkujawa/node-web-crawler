@@ -10,7 +10,8 @@ function UrlDoc( options ) {
 		uri: "/",
 		schema: "url",
 		lastModified: new Date(),
-		visited: 0
+		visited: 0,
+		depth: 0
 	}
 
 	this.overwriteTimeDiff = -1;

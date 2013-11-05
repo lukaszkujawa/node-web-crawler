@@ -1,6 +1,7 @@
 var async = require('async');
 var http = require('http');
 var Url = require('url');
+var UrlTool = require('./utils/urltool');
 
 var agent = exports = module.exports = {};
 
@@ -56,11 +57,16 @@ agent.init = function( options ) {
 		,( options.workers == undefined ? 1 : options.workers ) );
 }
 
-agent.queue = function( url ) {
+agent.queue = function( url, data ) {
 	var self = this;
 	
 	process.nextTick(function(){
-		self._queue.push( Url.parse( url ) );
+		var task = Url.parse( url );
+		if( data != undefined ) {
+			task.data = data;
+		}
+		
+		self._queue.push( task );
 	});
 }
 
@@ -84,7 +90,7 @@ agent.worker = function(task, callback) {
 }
 
 agent.onError = function( e, task, callback ) {
-	console.log('request error: ' + e.message + ' "' + task + '"');
+	console.log('request error: ' + e.message + ' "' + task.href + '"');
 	this.queue( task );
 	callback();
 }
@@ -93,8 +99,10 @@ agent.followRedirect = function( res, task, callback ) {
 	if( ( res.statusCode == 301 || res.statusCode == 302 ) && res.headers['location'] ) {
 		try {
 			var source = task.source == undefined ? [] : task.source;
+			var env = {task: task};
+
 			source.push( task.href );
-			task = Url.parse( res.headers['location'] );
+			task = Url.parse( UrlTool.nomalise( res.headers['location'], env ) );
 			task.source = source;
 			this.worker( task, callback );
 		}
@@ -148,9 +156,6 @@ agent.handleData = function( data, task, res, callback ) {
 	}
 
 	async.series( chain, callback );
-
-	chain = null;
-	data = null;
 }
 
 agent.getJobFunction = function( job, data, env ) {

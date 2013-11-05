@@ -1,6 +1,7 @@
 var async = require( 'async' );
 var UrlDoc = require( '../storage/doc/urldoc' );
 var cheerio = require('cheerio');
+var UrlTool = require('../utils/urltool');
 
 exports = module.exports = Driller;
 
@@ -97,37 +98,7 @@ Driller.prototype.getDocInsertFunction = function( doc ) {
 }
 
 Driller.prototype.normaliseUrl = function( url, env ) {
-	/**
-	 *	attach domain name to "/article/test"
-	 */
-	if( url.match( /^\/[^\/]+/ ) || url == '/' ) {
-		url = env.task.protocol + '//' + env.task.hostname + url;
-	}
-
-	/**
-	 *	attach url to relative link f.e. "hello/world"
-	 */
-	if( url.match( /^[^\/:]+(\/|$)/ ) ) {
-		url = env.task.href + '/' + url;
-	}
-
-	/**
-	 *	attach protocol to "//example.com/"
-	 */
-	if( url.match( /^\/\// ) ) {
-		url = env.task.protocol + url;
-	}
-
-	for( i in this.options.normalisers ) {
-		var norm = this.options.normalisers[ i ];
-		if( url.match( norm.rule ) ) {
-			url = norm.process( url );
-		}
-	}
-
-	url = url.replace( /[^:]\/[\/]+/, '/' );
-
-	return url;			
+	return UrlTool.nomalise( url, env, this.options.normalisers );		
 }
 
 Driller.prototype.isValidUrl = function( url ) {
