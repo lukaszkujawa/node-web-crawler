@@ -13,7 +13,8 @@ function Driller(options) {
 		overwrite: [],
 		normalisers: [],
 		filters: [],
-		verbose: false
+		verbose: false,
+		maxDepth: false
 	};
 
 	this._links = {};
@@ -23,6 +24,12 @@ function Driller(options) {
 Driller.prototype.execute = function(callback, data, env) {
 	if( env.res.headers['content-type'] == undefined || ! env.res.headers['content-type'].match( /^text\/html/) ) {
 		return callback();
+	}
+
+	if( this.options.maxDepth !== false && env.task.data != undefined && env.task.data.urldoc != undefined) {
+		if( env.task.data.urldoc.getSource().length >= this.options.maxDepth ) {
+			return callback();
+		}
 	}
 
 	var $ = cheerio.load( data ),
@@ -40,7 +47,9 @@ Driller.prototype.execute = function(callback, data, env) {
 
 		if( self.isValidUrl( url ) ) {
 			var doc = new UrlDoc( url );
-			doc.setOverwrite( self.getOverwrite( url ) );
+			
+			doc.setSourceFromEnv( env );
+			//ßdoc.setOverwrite( self.getOverwrite( url ) );
 			docs.push( self.getDocInsertFunction( doc ) );
 		}
 	});

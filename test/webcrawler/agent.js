@@ -23,12 +23,49 @@ describe('Agent', function(){
 			assert.equal( res.getEncoding(), 'binary' );
 		});
 
-		/*
-		it('should follow redirect on 301 and 302', function( done ) {
+		
+		it('should follow redirect on 301', function( done ) {
 			var workerFunc = agent.worker;
+			var task = Url.parse( 'http://www.example.com/test' );
+			var res = new Response();
+			res.statusCode = 301;
+			res.headers['location'] = 'http://redirect.example.com/';
 
+			agent.worker = function( callback ) {
+				agent.worker = workerFunc;
+				done();
+			}
+
+			agent.onRequest( res, task, function(){
+				assert( false, 'Redirection failed' );
+				agent.worker = workerFunc;
+				done();
+			});
 		});
-		*/
+
+	});
+
+	describe( '#followRedirect', function(){
+
+		it('should return true for 302', function() {
+			var workerFunc = agent.worker;
+			var task = Url.parse( 'http://www.example.com/test' );
+			var res = new Response();
+			res.statusCode = 302;
+			res.headers['location'] = 'http://redirect.example.com/';
+
+			agent.worker = function( callback ) {
+				agent.worker = workerFunc;
+			}
+
+			assert( agent.followRedirect( res, task, function(){}));
+		});
+
+		it('should return false for 200', function() {
+			var task = Url.parse( 'http://www.example.com/test' );
+			var res = new Response();
+			assert( ! agent.followRedirect( res, task, function(){}));
+		});
 
 	});
 

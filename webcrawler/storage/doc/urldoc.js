@@ -11,7 +11,7 @@ function UrlDoc( options ) {
 		schema: "url",
 		lastModified: new Date(),
 		visited: 0,
-		depth: 0
+		source: []
 	}
 
 	this.overwriteTimeDiff = -1;
@@ -50,6 +50,22 @@ UrlDoc.getById = function( id, callback ) {
 		var doc = new UrlDoc( body );
 		callback( doc );
 	});
+}
+
+UrlDoc.prototype.getSource = function() {
+	return this.fields.source;
+}
+
+UrlDoc.prototype.setSource = function( source ) {
+	this.fields.source = source;
+}
+
+UrlDoc.prototype.setSourceFromEnv = function( env ) {
+	if( env.task.data != undefined && env.task.data.urldoc != undefined ) {
+		this.setSource( env.task.data.urldoc.getSource().slice( 0 ) );
+	}
+
+	this.fields.source.push( env.task.href );
 }
 
 UrlDoc.prototype.setOverwrite = function( timeDiff ) {

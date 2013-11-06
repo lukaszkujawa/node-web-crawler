@@ -22,7 +22,9 @@ agent.initFromConfig = function( config ) {
 }
 
 agent._run = function( config ) {
-	var couchdb = require( './storage/couchdb' );
+	var couchdb = require( './storage/couchdb' ),
+		self = this;
+
 	couchdb.init({ dbname: config.getDatabaseName() });
 
 	async.waterfall([
@@ -39,9 +41,20 @@ agent._run = function( config ) {
 	  	}], 
 	  	function (err, result) {
 	  		var workersCount = config.getWorkers();
+	  		var seedUrl = config.getSeedUrl();
+	  		if( ! seedUrl ) {
+	  			var Scheduler = require( './job/scheduler' );
+	  			var scheduler = new Scheduler();
+	  			var env = { agent: self };
+	  		}
 			for( var i = 0 ; i < workersCount ; i++ ) {
 	    		setTimeout(function () {
-	      			agent.queue( config.getSeedUrl() );
+	    			if( seedUrl ) {
+	      				agent.queue( seedUrl );
+	      			}
+	      			else {
+	      				scheduler.execute( false, false, env );
+	      			}
 	    		}, 1000 * i );
 	 		} 
 	 	}  
@@ -92,11 +105,15 @@ agent.worker = function(task, callback) {
 agent.onError = function( e, task, callback ) {
 	console.log('request error: ' + e.message + ' "' + task.href + '"');
 	this.queue( task );
-	callback();
+	try {
+		callback();
+	}
+	catch( e ) {}
 }
 
 agent.followRedirect = function( res, task, callback ) {
 	if( ( res.statusCode == 301 || res.statusCode == 302 ) && res.headers['location'] ) {
+
 		try {
 			var source = task.source == undefined ? [] : task.source;
 			var env = {task: task};

@@ -23,7 +23,7 @@ couchdb.getNano = function() {
 
 couchdb.destroy = function( callback ) {
 	this.nano.db.destroy( this.options.dbname, function(err, body) {
-		if( err ) {
+		if( err && err.status_code != 404 ) {
 			console.log( err );
 			throw new Exception( err.code );
 		}

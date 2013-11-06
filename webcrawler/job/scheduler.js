@@ -8,7 +8,9 @@ function Scheduler(options) {
 
 Scheduler.prototype.execute = function(callback, data, env) {
 	UrlDoc.pop(function( doc ) {
-		env.agent.queue( doc.getUrl() );
-		callback();
+		env.agent.queue( doc.getUrl(), { urldoc: doc } );
+		if( callback ) {
+			callback();
+		}
 	});
 }
