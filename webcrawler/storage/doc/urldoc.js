@@ -26,6 +26,9 @@ function UrlDoc( options ) {
 
 UrlDoc.pop = function( callback ) {
 	couchdb.getDB().view('queue', 'url', { limit: 1 }, function( err, body ) {
+		if( body.rows.length == 0 ) {
+			return callback( null );
+		}
 		var doc = new UrlDoc( body.rows[0].value );
 		doc.fields.visited = 1;
 		doc.fields.lastModified = new Date();
@@ -61,8 +64,8 @@ UrlDoc.prototype.setSource = function( source ) {
 }
 
 UrlDoc.prototype.setSourceFromEnv = function( env ) {
-	if( env.task.data != undefined && env.task.data.urldoc != undefined ) {
-		this.setSource( env.task.data.urldoc.getSource().slice( 0 ) );
+	if( env.task.data != undefined && env.task.data.source != undefined ) {
+		this.setSource( env.task.data.source.slice( 0 ) );
 	}
 
 	this.fields.source.push( env.task.href );

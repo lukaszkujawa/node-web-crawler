@@ -13,6 +13,7 @@ function Driller(options) {
 		overwrite: [],
 		normalisers: [],
 		filters: [],
+		patterns: [],
 		verbose: false,
 		maxDepth: false
 	};
@@ -26,8 +27,8 @@ Driller.prototype.execute = function(callback, data, env) {
 		return callback();
 	}
 
-	if( this.options.maxDepth !== false && env.task.data != undefined && env.task.data.urldoc != undefined) {
-		if( env.task.data.urldoc.getSource().length >= this.options.maxDepth ) {
+	if( this.options.maxDepth !== false && env.task.data != undefined && env.task.data.source != undefined) {
+		if( env.task.data.source.length >= this.options.maxDepth ) {
 			return callback();
 		}
 	}
@@ -122,6 +123,21 @@ Driller.prototype.isValidUrl = function( url ) {
 
 	if( this.options.domain && ! url.match( this.options.domain ) ) {
 		return false;
+	}
+
+	if( this.options.patterns.length > 0 ) {
+		var match = false;
+		var patterns = this.options.patterns;
+		for( i in patterns ) {
+			if( url.match( patterns[ i ] ) ) {
+				match = true;
+				break;
+			}
+		}
+
+		if( ! match ) {
+			return false;
+		}
 	}
 
 	/**

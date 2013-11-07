@@ -1,10 +1,30 @@
 var assert = require( "assert" )
 var helper = require( "../../helper" );
 var fs = require('fs');
+var Driller = require( '../../../webcrawler/job/driller' );
+
+function drillerExecute( testFile, domainRestriction, env, callback ) {
+	var driller = new Driller({ domainRestriction: domainRestriction });
+	var docs = [];
+
+	driller.getDocInsertFunction = function( doc ) {
+		docs.push( doc );
+		return function( _callback ) { _callback(); }
+	}
+
+	fs.readFile( __dirname + testFile , 'utf8', function (err, html) {
+		if( err ) { throw new Exception( err ); }
+
+		driller.execute( function(){
+			callback( docs );
+		}, html, env );
+
+	});
+	
+
+}
 
 describe('Driller', function(){
-
-	var Driller = require( '../../../webcrawler/job/driller' );
 
 	describe('#isValidUrl()', function(){
 		var driller = new Driller({
@@ -29,6 +49,18 @@ describe('Driller', function(){
 
 			assert( ! driller.isValidUrl( 'mailto:admin@example.com' ) );
 			assert( ! driller.isValidUrl( ' JavaScript:admin@example.com' ) );
+		});
+
+		it('should return true only if URL match a pattern', function() {
+			var driller = new Driller({patterns: [
+				/\/page\/[0-9]+\//,
+				/\/view\/id\/[0-9]+\//
+			]});
+
+			assert( ! driller.isValidUrl( 'https://testing.com/100/' ) );
+			assert( driller.isValidUrl( 'https://www.testing.com/view/id/232/' ) );
+			assert( driller.isValidUrl( 'https://testing.com/page/0/1' ) );
+			assert( ! driller.isValidUrl( 'https://testing.com/page/' ) );
 		});
 	});
 
@@ -87,32 +119,27 @@ describe('Driller', function(){
 	});
 
 	describe('#execute()', function(){
-		var driller = new Driller({ domainRestriction: "example.com" });
-
+		
 		it('should drill urls only from http://*example.com/', function( done ) {
-			var docs = [];
 
-			/**
-			 * Mock getDocInsertFunction()
-			 */
-			driller.getDocInsertFunction = function( doc ) {
-				docs.push( doc );
-				return function( callback ) { callback(); }
-			}
+			var env = helper.getEnv( 'http://www.example.com/view/1' );
+			drillerExecute( '/html/site01.html', 'example.com', env, function(docs){
+				assert.equal( docs.length, 6 );
+				done();
+			});
 
-			fs.readFile( __dirname + '/html/site01.html' , 'utf8', function (err, html) {
-				if( err ) { throw new Exception( err ); }
+		});
 
-				driller.execute( function(){
-					assert.equal( docs.length, 6 );
-
-					done();
-				}, html, helper.getEnv( 'http://www.example.com/view/1' ) );
-
+		it('should attach url source to all documents', function(done){
+			var env = helper.getEnv( 'http://www.example.com/view/1' );
+			
+			env.task.data = { source: [ 'http://www.example.com/1', 'http://www.example.com/2'] };
+			drillerExecute( '/html/site01.html', 'example.com', env, function(docs){
+				assert.equal( docs.length, 6 );
+				done();
 			});
 			
 		});
-
 
 	});
 
