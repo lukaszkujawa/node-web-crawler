@@ -1,5 +1,6 @@
 var async = require('async');
 var http = require('http');
+var https = require('https');
 var Url = require('url');
 var UrlTool = require('./utils/urltool');
 var Scheduler = require( './job/scheduler' );
@@ -89,8 +90,15 @@ agent.use = function( job ) {
 
 agent.worker = function(task, callback) {
 	var self = this;
+	var reqHandler = http;
+	
+	if( task.protocol.match( /^https/ ) ) {
+		reqHandler = https;
+		task.requestCert = false;
+    	task.rejectUnauthorized = false;
+	}
 
-	var req = http.request(task, function(res) {
+	var req = reqHandler.request(task, function(res) {
 		self.onRequest( res, task, callback );
 	});
 
