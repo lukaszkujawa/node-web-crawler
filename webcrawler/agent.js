@@ -2,7 +2,7 @@ var async = require('async');
 var http = require('http');
 var Url = require('url');
 var UrlTool = require('./utils/urltool');
-
+var Scheduler = require( './job/scheduler' );
 var agent = exports = module.exports = {};
 
 agent.initFromConfig = function( config ) {
@@ -43,7 +43,6 @@ agent._run = function( config ) {
 	  		var workersCount = config.getWorkers();
 	  		var seedUrl = config.getSeedUrl();
 	  		if( ! seedUrl ) {
-	  			var Scheduler = require( './job/scheduler' );
 	  			var scheduler = new Scheduler();
 	  			var env = { agent: self };
 	  		}
@@ -103,12 +102,11 @@ agent.worker = function(task, callback) {
 }
 
 agent.onError = function( e, task, callback ) {
-	console.log('request error: ' + e.message + ' "' + task.href + '"');
-	this.queue( task );
-	try {
-		callback();
-	}
-	catch( e ) {}
+	console.log(' * request error: ' + e.message + ' "' + task.href + '"');
+	var scheduler = new Scheduler();
+	var env = { agent: this };
+	
+	scheduler.execute( callback, null, env );
 }
 
 agent.followRedirect = function( res, task, callback ) {
