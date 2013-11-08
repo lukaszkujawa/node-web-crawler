@@ -53,6 +53,9 @@ couchdb.createDesignDoc = function( callback ) {
 	   "views": {
 	       "url": {
 	           "map": "function(doc) {\n  if( doc.schema && doc.schema == 'url' && doc.visited == 0 ) {\n    emit(null, doc);\n  }\n}"
+	    	},
+	    	"crawled-url": {
+	           "map": "function(doc) {\n  if( doc.schema && doc.schema == 'url' && doc.visited == 1 ) {\n    emit(null, doc);\n  }\n}"
 	    	}
 		}
 	};

@@ -20,7 +20,10 @@ Scheduler.prototype.execute = function(callback, data, env) {
 
 		env.agent.queue( doc.getUrl(), data );
 		if( callback ) {
-			callback();
+			try{
+				callback();
+			}
+			catch(e){}
 		}
 	});
 }
