@@ -26,9 +26,10 @@ function UrlDoc( options ) {
 
 UrlDoc.pop = function( callback ) {
 	couchdb.getDB().view('queue', 'url', { limit: 1 }, function( err, body ) {
-		if( body.rows.length == 0 ) {
+		if( err || body.rows == undefined || body.rows.length == 0 ) {
 			return callback( null );
 		}
+		
 		var doc = new UrlDoc( body.rows[0].value );
 		doc.fields.visited = 1;
 		doc.fields.lastModified = new Date();

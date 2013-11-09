@@ -12,6 +12,7 @@
     "nano": "*",
     "async": "*",
     "mocha": "*",
-    "optimist": "*"
+    "optimist": "*",
+    "solr-client": "*"
   }
 }

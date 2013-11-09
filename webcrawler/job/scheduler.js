@@ -8,7 +8,6 @@ function Scheduler(options) {
 
 Scheduler.prototype.execute = function(callback, data, env) {
 	var self = this;
-
 	UrlDoc.pop(function( doc ) {
 		if( self.retry( doc, callback, data, env ) ) {
 			return;
@@ -23,7 +22,9 @@ Scheduler.prototype.execute = function(callback, data, env) {
 			try{
 				callback();
 			}
-			catch(e){}
+			catch(e){
+				console.log( " * error: Scheduler callback already called" );
+			}
 		}
 	});
 }

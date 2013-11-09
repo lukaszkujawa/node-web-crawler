@@ -55,7 +55,7 @@ agent._run = function( config ) {
 	      			else {
 	      				scheduler.execute( false, false, env );
 	      			}
-	    		}, 1000 * i );
+	    		}, 500 * i );
 	 		} 
 	 	}  
 	);
@@ -91,7 +91,7 @@ agent.use = function( job ) {
 agent.worker = function(task, callback) {
 	var self = this;
 	var reqHandler = http;
-	
+
 	if( task.protocol.match( /^https/ ) ) {
 		reqHandler = https;
 		task.requestCert = false;
