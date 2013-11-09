@@ -4,6 +4,13 @@ var solr = require('solr-client');
 exports = module.exports = Solr;
 
 function Solr(options) {
+	for( i in options.rules ) {
+		if( options.rules[ i ].filter != undefined ) {
+			options.rules[ i ].filter.pattern = new RegExp( options.rules[ i ].filter.pattern, 'g' );
+		}
+
+	}
+
 	this.options = options;
 }
 
@@ -19,38 +26,7 @@ Solr.prototype.eachRule = function(callback) {
 	}
 }
 
-Solr.prototype.execute = function(callback, data, env) {
-	if( env.res.headers['content-type'] == undefined || ! env.res.headers['content-type'].match( /^text\/html/) ) {
-		return callback();
-	}
-
-	var $ = cheerio.load( data ),
-		self = this,
-		doc = {
-			id: env.task.href
-		};
-
-	this.eachRule( function( rule ) {
-		$( rule.selector ).each( function() {
-			if( rule.attribute == false ) {
-				var content = $(this).text();
-			}
-			else {
-				var content = $(this).attr( rule.attribute );
-			}
-
-			if( doc[ rule.field ] == undefined ) {
-				doc[ rule.field ] = content;
-			}
-			else if( typeof( doc ) == 'string' ) {
-				doc[ rule.field ] = [ doc[ rule.field ], content ];
-			}
-			else {
-				doc[ rule.field ].push( content );
-			}
-		});
-	});
-
+Solr.prototype.save = function(doc, callback) {
 	var client = solr.createClient();
 
 	client.add(doc, function(err, obj) {
@@ -75,6 +51,59 @@ Solr.prototype.execute = function(callback, data, env) {
 
 		callback();
 	});
+}
+
+Solr.prototype.applyFilter = function( str, rule ) {
+	if( rule.filter == undefined ) {
+		return str;
+	}
+
+	return str.replace( rule.filter.pattern, rule.filter.replacement );
+}
+
+Solr.prototype.execute = function(callback, data, env) {
+	if( env.res.headers['content-type'] == undefined || ! env.res.headers['content-type'].match( /^text\/html/) ) {
+		return callback();
+	}
+
+	var $ = cheerio.load( data ),
+		self = this,
+		saveDoc = false,
+		doc = {
+			id: env.task.href
+		};
+
+	this.eachRule( function( rule ) {
+		$( rule.selector ).each( function() {
+			if( rule.attribute == false ) {
+				var content = $(this).text();
+			}
+			else {
+				var content = $(this).attr( rule.attribute );
+			}
+
+			content = self.applyFilter( content, rule );
+
+			if( doc[ rule.field ] == undefined ) {
+				doc[ rule.field ] = content;
+			}
+			else if( typeof( doc ) == 'string' ) {
+				doc[ rule.field ] = [ doc[ rule.field ], content ];
+			}
+			else {
+				doc[ rule.field ].push( content );
+			}
+
+			saveDoc = true;
+		});
+	});
+
+	if( saveDoc ) {
+		this.save( doc, callback );
+	}
+	else {
+		callback();
+	}
 
 }
 
