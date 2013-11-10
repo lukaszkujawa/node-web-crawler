@@ -17,7 +17,12 @@ Saver.prototype.execute = function(callback, data, env) {
 		source: env.task.source == undefined ? null : env.task.source
 	});
 
-	webDoc.setData( data );
+	if( typeof( data ) == 'function' ) {
+		webDoc.setData( data.html() );
+	}
+	else {
+		webDoc.setData( data );
+	}
 
 	webDoc.insert(function(){
 		callback();

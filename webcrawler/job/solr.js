@@ -82,10 +82,8 @@ Solr.prototype.applyFilter = function( str, rule ) {
 	return str;
 }
 
-Solr.prototype.execute = function(callback, data, env) {
-	return callback();
-	
-	if( env.res.headers['content-type'] == undefined || ! env.res.headers['content-type'].match( /^text\/html/) ) {
+Solr.prototype.execute = function(callback, $, env) {
+	if( typeof( $ ) != 'function' ) {
 		return callback();
 	}
 
@@ -93,8 +91,7 @@ Solr.prototype.execute = function(callback, data, env) {
 		return callback();
 	}
 
-	var $ = cheerio.load( data ),
-		self = this,
+	var self = this,
 		saveDoc = false,
 		doc = {
 			id: env.task.href

@@ -2,6 +2,7 @@ var assert = require( "assert" )
 var helper = require( "../../helper" );
 var fs = require('fs');
 var Driller = require( '../../../webcrawler/job/driller' );
+var cheerio = require('cheerio');
 
 function drillerExecute( testFile, domainRestriction, env, callback ) {
 	var driller = new Driller({ domainRestriction: domainRestriction });
@@ -17,7 +18,7 @@ function drillerExecute( testFile, domainRestriction, env, callback ) {
 
 		driller.execute( function(){
 			callback( docs );
-		}, html, env );
+		}, cheerio.load( html ), env );
 
 	});
 	

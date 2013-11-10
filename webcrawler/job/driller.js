@@ -22,7 +22,11 @@ function Driller(options) {
 	this.initOptions( options );
 }
 
-Driller.prototype.execute = function(callback, data, env) {
+Driller.prototype.execute = function(callback, $, env) {
+	if( typeof( $ ) != 'function' ) {
+		return callback();
+	}
+
 	if( env.res.headers['content-type'] == undefined || ! env.res.headers['content-type'].match( /^text\/html/) ) {
 		return callback();
 	}
@@ -33,8 +37,7 @@ Driller.prototype.execute = function(callback, data, env) {
 		}
 	}
 
-	var $ = cheerio.load( data ),
-		self = this,
+	var self = this,
 		docs = [];
 
 	$( self.options.selector ).each( function( i, el ) {

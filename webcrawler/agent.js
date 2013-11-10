@@ -5,6 +5,7 @@ var Url = require('url');
 var UrlTool = require('./utils/urltool');
 var Scheduler = require( './job/scheduler' );
 var agent = exports = module.exports = {};
+var cheerio = require('cheerio');
 
 agent.initFromConfig = function( config ) {
 	var async = require( 'async' );
@@ -172,6 +173,10 @@ agent.handleData = function( data, task, res, callback ) {
 			task: task,
 			res: res
 		};
+
+	if( env.res.headers['content-type'] != undefined && env.res.headers['content-type'].match( /^text\/html/) ) {
+		data = cheerio.load( data );
+	}
 
 	for( i in this.middleware ) {
 		var job = self.middleware[ i ];
