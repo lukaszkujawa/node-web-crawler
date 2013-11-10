@@ -6,9 +6,22 @@ exports = module.exports = Solr;
 function Solr(options) {
 	for( i in options.rules ) {
 		if( options.rules[ i ].filter != undefined ) {
-			options.rules[ i ].filter.pattern = new RegExp( options.rules[ i ].filter.pattern, 'g' );
+			if( options.rules[ i ].filter[0] != undefined ) {
+				for( y in options.rules[ i ].filter ) {
+					options.rules[ i ].filter[ y ].pattern = new RegExp( options.rules[ i ].filter[ y ].pattern, 'g' );
+				}
+			}
+			else {
+				options.rules[ i ].filter.pattern = new RegExp( options.rules[ i ].filter.pattern, 'g' );	
+			}
 		}
+	}
 
+	if( options.urlPattern != undefined ) {
+		options.urlPattern = new RegExp( options.urlPattern );
+	}
+	else {
+		options.urlPattern = false;
 	}
 
 	this.options = options;
@@ -58,11 +71,25 @@ Solr.prototype.applyFilter = function( str, rule ) {
 		return str;
 	}
 
-	return str.replace( rule.filter.pattern, rule.filter.replacement );
+	if( rule.filter[ 0 ] == undefined ) {
+		return str.replace( rule.filter.pattern, rule.filter.replacement );
+	}
+	
+	for( i in rule.filter ) {
+		str = str.replace( rule.filter[ i ].pattern, rule.filter[ i ].replacement );
+	}
+
+	return str;
 }
 
 Solr.prototype.execute = function(callback, data, env) {
+	return callback();
+	
 	if( env.res.headers['content-type'] == undefined || ! env.res.headers['content-type'].match( /^text\/html/) ) {
+		return callback();
+	}
+
+	if( this.options.urlPattern && ! env.task.href.match( this.options.urlPattern ) ) {
 		return callback();
 	}
 
@@ -87,7 +114,7 @@ Solr.prototype.execute = function(callback, data, env) {
 			if( doc[ rule.field ] == undefined ) {
 				doc[ rule.field ] = content;
 			}
-			else if( typeof( doc ) == 'string' ) {
+			else if( typeof( doc[ rule.field ] ) == 'string' ) {
 				doc[ rule.field ] = [ doc[ rule.field ], content ];
 			}
 			else {

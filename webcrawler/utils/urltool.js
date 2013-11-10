@@ -31,6 +31,7 @@ UrlTool.nomalise = function( url, env, plugins ) {
 	}
 
 	url = url.replace( /([^:])\/[\/]+/, '$1/' );
+	url = url.replace( /#.*$/, '' );
 
 	return url;	
 }

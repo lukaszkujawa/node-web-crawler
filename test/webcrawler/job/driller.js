@@ -91,6 +91,10 @@ describe('Driller', function(){
 				  env: 'http://www.testing.com/download.php?a=10', 
 				  expect: 'http://www.testing.com/privacy.php' },
 
+				{ input: '/hello/id/5?_a=1#comment=1023', 
+				  env: 'http://www.testing.com/example/id/1', 
+				  expect: 'http://www.testing.com/hello/id/5?_a=1' },
+
 			];
 
 			for( i in tests ) {
@@ -119,9 +123,10 @@ describe('Driller', function(){
 	});
 
 	describe('#execute()', function(){
-		
-		it('should drill urls only from http://*example.com/', function( done ) {
+		var VisittedUrls = require('../../../webcrawler/visittedurls');
 
+		it('should drill urls only from http://*example.com/', function( done ) {
+			VisittedUrls.setLinks( [] );
 			var env = helper.getEnv( 'http://www.example.com/view/1' );
 			drillerExecute( '/html/site01.html', 'example.com', env, function(docs){
 				assert.equal( docs.length, 6 );
@@ -131,6 +136,7 @@ describe('Driller', function(){
 		});
 
 		it('should attach url source to all documents', function(done){
+			VisittedUrls.setLinks( [] );
 			var env = helper.getEnv( 'http://www.example.com/view/1' );
 			
 			env.task.data = { source: [ 'http://www.example.com/1', 'http://www.example.com/2'] };

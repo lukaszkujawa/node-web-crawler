@@ -2,6 +2,7 @@ var async = require( 'async' );
 var UrlDoc = require( '../storage/doc/urldoc' );
 var cheerio = require('cheerio');
 var UrlTool = require('../utils/urltool');
+var VisittedUrls = require('../visittedurls');
 
 exports = module.exports = Driller;
 
@@ -18,7 +19,6 @@ function Driller(options) {
 		maxDepth: false
 	};
 
-	this._links = {};
 	this.initOptions( options );
 }
 
@@ -26,7 +26,7 @@ Driller.prototype.execute = function(callback, data, env) {
 	if( env.res.headers['content-type'] == undefined || ! env.res.headers['content-type'].match( /^text\/html/) ) {
 		return callback();
 	}
-
+	
 	if( this.options.maxDepth !== false && env.task.data != undefined && env.task.data.source != undefined) {
 		if( env.task.data.source.length >= this.options.maxDepth ) {
 			return callback();
@@ -77,6 +77,9 @@ Driller.prototype.initOptions = function( options ) {
 			if( i == "domainRestriction" ) {
 				this.setDomainRestriction( options[ i ] );
 			}
+			else if( i == "patterns" ) {
+				this.setPatterns( options[ i ] );
+			}
 			else {
 				this.options[ i ] = options[ i ];
 			}
@@ -88,6 +91,12 @@ Driller.prototype.setDomainRestriction = function( domain ) {
 	var domain = domain.replace( /\./, '\.' );
 	domain = '^http[s]{0,1}:\/\/(([^\/]+?\\.)|())' + domain + '(\/|$)'; 
 	this.options[ "domain" ] = new RegExp( domain, 'i' );
+}
+
+Driller.prototype.setPatterns = function( patterns ) {
+	for( i in patterns ) {
+		this.options.patterns.push( new RegExp( patterns[ i ] ) );
+	}
 }
 
 Driller.prototype.getOverwrite = function( url ) {
@@ -140,14 +149,11 @@ Driller.prototype.isValidUrl = function( url ) {
 		}
 	}
 
-	/**
-	 *	@todo: release some data to avoid memory leak
-	 */
-	if( this._links[ url ] == undefined ) {
-		this._links[ url ] = 1;
-		return true;
+	if( VisittedUrls.exists( url ) ) {	
+		return false;
 	}
 
-	this._links[ url ] += 1;
-	return false;
+	VisittedUrls.add( url );
+
+	return true;
 }
