@@ -44,22 +44,43 @@ agent._run = function( config ) {
 	  	function (err, result) {
 	  		var workersCount = config.getWorkers();
 	  		var seedUrl = config.getSeedUrl();
+	  		
 	  		if( ! seedUrl ) {
 	  			var scheduler = new Scheduler();
 	  			var env = { agent: self };
 	  		}
-			for( var i = 0 ; i < workersCount ; i++ ) {
-	    		setTimeout(function () {
-	    			if( seedUrl ) {
-	      				agent.queue( seedUrl );
-	      			}
-	      			else {
-	      				scheduler.execute( false, false, env );
-	      			}
-	    		}, 500 * i );
-	 		} 
+
+	  		if( typeof( seedUrl ) == 'object' ) {
+	  			self._runFromArray( seedUrl, 500 );
+	  		}
+	  		else {
+	  			self._runFromString( seedUrl, workersCount, 500 );
+	  		}
 	 	}  
 	);
+}
+
+agent._runFromArray = function(seedUrl, delay) {
+	for( i in seedUrl ) {
+		(function( i ) {
+			setTimeout(function () {
+				agent.queue( seedUrl[ i ] );
+			}, delay * i );	
+		})( i );
+	}
+}
+
+agent._runFromString = function(seedUrl, workersCount, delay ) {
+	for( var i = 0 ; i < workersCount ; i++ ) {
+		setTimeout(function () {
+			if( seedUrl ) {
+					agent.queue( seedUrl );
+				}
+				else {
+					scheduler.execute( false, false, env );
+				}
+		}, delay * i );
+	} 
 }
 
 agent.init = function( options ) {
@@ -128,7 +149,21 @@ agent.followRedirect = function( res, task, callback ) {
 			source.push( task.href );
 			task = Url.parse( UrlTool.nomalise( res.headers['location'], env ) );
 			task.source = source;
-			this.worker( task, callback );
+
+			if( task.redirectTTL == undefined ) {
+				task.redirectTTL = 30;
+			}
+
+			task.redirectTTL -= 1;
+
+			if( task.redirectTTL == 0 ) {
+				agent.onError({message: "Broken redirection loop"}, task, callback );
+			}
+			else {
+				process.nextTick(function() {
+					agent.worker( task, callback );
+				});
+			}
 		}
 		catch( e ) {
 			callback();
@@ -184,6 +219,10 @@ agent.handleData = function( data, task, res, callback ) {
 	}
 
 	async.series( chain, callback );
+
+	res = null;
+	chain = null;
+	data = null;
 }
 
 agent.getJobFunction = function( job, data, env ) {

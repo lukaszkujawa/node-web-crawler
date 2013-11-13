@@ -1,23 +1,17 @@
 var cheerio = require('cheerio');
 var solr = require('solr-client');
+var async = require( 'async' );
 
 exports = module.exports = Solr;
 
 function Solr(options) {
 	for( i in options.rules ) {
 		if( options.rules[ i ].filter != undefined ) {
-			if( options.rules[ i ].filter[0] != undefined ) {
-				for( y in options.rules[ i ].filter ) {
-					options.rules[ i ].filter[ y ].pattern = new RegExp( options.rules[ i ].filter[ y ].pattern, 'g' );
-				}
-			}
-			else {
-				options.rules[ i ].filter.pattern = new RegExp( options.rules[ i ].filter.pattern, 'g' );	
-			}
+			this.initFilters( options.rules[ i ] );
 		}
 	}
 
-	if( options.urlPattern != undefined ) {
+	if( options.urlPattern != undefined && options.urlPattern != false ) {
 		options.urlPattern = new RegExp( options.urlPattern );
 	}
 	else {
@@ -26,6 +20,33 @@ function Solr(options) {
 
 	this.options = options;
 }
+
+Solr.prototype.initFilters = function( rule ) {
+	if( rule.filter[0] != undefined ) {
+		for( y in rule.filter ) {
+			this._initFilter( rule.filter[ y ] );
+		}
+	}
+	else {
+		this._initFilter( rule.filter );
+	}
+}
+
+Solr.prototype._initFilter = function( filter ) {
+	if( filter.pattern != undefined ) {
+		filter.pattern = new RegExp( filter.pattern, 'g' );
+		filter.run = function( str ) {
+			return str.replace( this.pattern, this.replacement );
+		}
+	}
+	else if( filter.module != undefined ) {
+		console.log( filter.module );
+		filter.run = require( filter.module ).run;
+	}
+	else {
+		throw new Exception( "Incorrect filter configuration" );
+	}
+} 
 
 Solr.prototype.getRules = function() {
 	return this.options.rules;
@@ -72,35 +93,64 @@ Solr.prototype.applyFilter = function( str, rule ) {
 	}
 
 	if( rule.filter[ 0 ] == undefined ) {
-		return str.replace( rule.filter.pattern, rule.filter.replacement );
+		return rule.filter.run( str );
+		//return str.replace( rule.filter.pattern, rule.filter.replacement );
 	}
 	
 	for( i in rule.filter ) {
-		str = str.replace( rule.filter[ i ].pattern, rule.filter[ i ].replacement );
+		str = rule.filter[ i ].run( str );
+		//str = str.replace( rule.filter[ i ].pattern, rule.filter[ i ].replacement );
 	}
 
 	return str;
 }
 
 Solr.prototype.execute = function(callback, $, env) {
-	if( typeof( $ ) != 'function' ) {
+	if( typeof( $ ) != 'function' || 
+		( this.options.urlPattern && ! env.task.href.match( this.options.urlPattern ) ) ) {
 		return callback();
 	}
 
-	if( this.options.urlPattern && ! env.task.href.match( this.options.urlPattern ) ) {
-		return callback();
-	}
+	var self = this;
 
-	var self = this,
-		saveDoc = false,
-		doc = {
+	if( this.options.each != undefined ) {
+		/**
+		 *	Create multiple Solr document from one HTML page
+		 */
+		var docs = [];
+		$( this.options.each ).each(function(i, el) {
+			docs.push(function(callback){
+				var doc = {};
+				self.parseAndInsert( $, doc, el, callback );
+			});
+		});
+
+		async.parallel( docs, callback );
+	}
+	else {
+		var doc = {
 			id: env.task.href
 		};
 
+		this.parseAndInsert( $, doc, false, callback );
+	}
+}
+
+Solr.prototype.parseAndInsert = function( $, doc, el, callback ) {
+	var self = this,
+		saveDoc = false;
+
 	this.eachRule( function( rule ) {
-		$( rule.selector ).each( function() {
+		if( el ) {
+			var obj = $(el).find( rule.selector );
+		}
+		else {
+			var obj = $( rule.selector );
+		}
+
+		obj.each( function() {
 			if( rule.attribute == false ) {
-				var content = $(this).text();
+				var content = $(this).html();
 			}
 			else {
 				var content = $(this).attr( rule.attribute );
@@ -122,12 +172,14 @@ Solr.prototype.execute = function(callback, $, env) {
 		});
 	});
 
+	/**
+	 *	Save only if there is at least one positive match
+	 */
 	if( saveDoc ) {
-		this.save( doc, callback );
+		console.log( doc );
+		//this.save( doc, callback );
 	}
 	else {
 		callback();
 	}
-
 }
-

@@ -59,6 +59,8 @@ Driller.prototype.execute = function(callback, $, env) {
 	});
 
 	async.parallel( docs, callback );
+
+	docs = null;
 }
 
 Driller.prototype.addOverwriteRule = function( rule ) {
