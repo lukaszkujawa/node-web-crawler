@@ -158,6 +158,14 @@ Solr.prototype.parseAndInsert = function( $, doc, el, callback ) {
 
 			content = self.applyFilter( content, rule );
 
+			if( content == '' ) {
+				return;
+			}
+
+			if( content && rule.prepend != undefined ) {
+				content = rule.prepend + content;
+			}
+
 			if( doc[ rule.field ] == undefined ) {
 				doc[ rule.field ] = content;
 			}
@@ -175,9 +183,8 @@ Solr.prototype.parseAndInsert = function( $, doc, el, callback ) {
 	/**
 	 *	Save only if there is at least one positive match
 	 */
-	if( saveDoc ) {
-		console.log( doc );
-		//this.save( doc, callback );
+	if( saveDoc && doc.id != undefined ) {
+		this.save( doc, callback );
 	}
 	else {
 		callback();
