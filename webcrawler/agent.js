@@ -95,6 +95,8 @@ agent.init = function( options ) {
 agent.queue = function( url, data ) {
 	var self = this;
 	
+	console.log( url );
+
 	process.nextTick(function(){
 		var task = Url.parse( url );
 		if( data != undefined ) {
@@ -161,7 +163,12 @@ agent.followRedirect = function( res, task, callback ) {
 			}
 			else {
 				process.nextTick(function() {
-					agent.worker( task, callback );
+					try {
+						agent.worker( task, callback );
+					}
+					catch( e ) {
+						agent.onError({message: e.message}, task, callback);
+					}
 				});
 			}
 		}
@@ -176,8 +183,7 @@ agent.followRedirect = function( res, task, callback ) {
 }
 
 agent.onRequest = function( res, task, callback ) {
-	var self = this,
-		data = '';
+	var self = this;
 
 	if( this.followRedirect( res, task, callback ) ) {
 		return;
@@ -191,12 +197,16 @@ agent.onRequest = function( res, task, callback ) {
 	}
 
 	res.on('data', function (chunk) {
-		data += chunk;
+		if( this._data == undefined ) {
+			this._data = '';
+		}
+
+		this._data += chunk;
 	});
 
 	res.on('end', function() {
+		var data = this._data;
 		self.handleData( data, task, res, callback );
-		data = null;
 	});
 }
 
@@ -219,10 +229,6 @@ agent.handleData = function( data, task, res, callback ) {
 	}
 
 	async.series( chain, callback );
-
-	res = null;
-	chain = null;
-	data = null;
 }
 
 agent.getJobFunction = function( job, data, env ) {

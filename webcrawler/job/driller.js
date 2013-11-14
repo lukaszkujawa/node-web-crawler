@@ -129,11 +129,17 @@ Driller.prototype.isValidUrl = function( url ) {
 	/**
 	 *	Ignore links like "mailto:" or "javascript:"
 	 */
+
+	 /*
 	var protocol = url.match( /^[\ ]*([a-zA-Z0-0]+):/ );
 	if( protocol && protocol[1].toLowerCase() != 'http' && protocol[1].toLowerCase() != 'https' ) {
 		return false;
 	}
+	*/
 
+	if( ! url.match( /^http[s]{0,1}:\/\//i ) ) {
+		return false;
+	}
 
 	if( this.options.domain && ! url.match( this.options.domain ) ) {
 		return false;

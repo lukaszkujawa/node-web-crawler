@@ -1,8 +1,8 @@
 {
-	"workers": 2,
+	"workers": 5,
 	"seedUrl": "http://stackoverflow.com/",
 	"database": {
-		"name": "web-crawler-stackoverflow",
+		"name": "web-crawler-so",
 		"rebuild": true
 	},
 	"jobs": [
