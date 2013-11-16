@@ -14,6 +14,15 @@ var fs = require('fs');
 var agent = require('./webcrawler/agent');
 var Config = require( './webcrawler/config' );
 
+/*
+setInterval(function () {
+    if (typeof gc === 'function') {
+        gc();
+    }
+    console.log( process.memoryUsage());
+}, 60000);
+*/
+
 console.log( "" );
 
 if( argv.c == undefined ) {

@@ -88,14 +88,13 @@ agent.init = function( options ) {
 	this.options =
 	this.middleware = [];
 	this._queue = async.queue( function(task, callback) { 
-		self.worker(task, callback) }
+			self.worker(task, callback); 
+		}
 		,( options.workers == undefined ? 1 : options.workers ) );
 }
 
 agent.queue = function( url, data ) {
 	var self = this;
-	
-	console.log( url );
 
 	process.nextTick(function(){
 		var task = Url.parse( url );
@@ -198,15 +197,16 @@ agent.onRequest = function( res, task, callback ) {
 
 	res.on('data', function (chunk) {
 		if( this._data == undefined ) {
-			this._data = '';
+			this._data = [];
 		}
 
-		this._data += chunk;
+		this._data.push( chunk );
 	});
 
 	res.on('end', function() {
 		var data = this._data;
-		self.handleData( data, task, res, callback );
+		self.handleData( data.join(''), task, res, callback );
+		this._data = null;
 	});
 }
 
@@ -219,6 +219,11 @@ agent.handleData = function( data, task, res, callback ) {
 			res: res
 		};
 
+	var test = '';
+	for( var i = 0 ; i < 10000 ; i++ ) {
+		test += 'is it DELETED?? ';
+	}
+
 	if( env.res.headers['content-type'] != undefined && env.res.headers['content-type'].match( /^text\/html/) ) {
 		data = cheerio.load( data );
 	}
@@ -229,6 +234,9 @@ agent.handleData = function( data, task, res, callback ) {
 	}
 
 	async.series( chain, callback );
+
+	chain = null;
+	data = null;
 }
 
 agent.getJobFunction = function( job, data, env ) {

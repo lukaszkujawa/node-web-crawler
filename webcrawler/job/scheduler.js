@@ -6,7 +6,7 @@ function Scheduler(options) {
 	this.options = options;
 }
 
-Scheduler.prototype.execute = function(callback, data, env) {
+Scheduler.prototype.execute = function(callback, data, env) {	
 	var self = this;
 	UrlDoc.pop(function( doc ) {
 		if( self.retry( doc, callback, data, env ) ) {
