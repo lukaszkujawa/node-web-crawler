@@ -8,6 +8,7 @@ function Scheduler(options) {
 
 Scheduler.prototype.execute = function(callback, data, env) {	
 	var self = this;
+	
 	UrlDoc.pop(function( doc ) {
 		if( self.retry( doc, callback, data, env ) ) {
 			return;
@@ -33,6 +34,7 @@ Scheduler.prototype.retry = function( doc, callback, data, env ) {
 	var self = this;
 
 	if( doc == null ) {
+		env.agent.log("retying pop function", self);
 		env._attempt = env._attempt == undefined ? 1 : env._attempt + 1;
 		var wait = 5 * env._attempt;
 

@@ -3,7 +3,6 @@ var http = require('http');
 var https = require('https');
 var Url = require('url');
 var UrlTool = require('./utils/urltool');
-var Scheduler = require( './job/scheduler' );
 var agent = exports = module.exports = {};
 var cheerio = require('cheerio');
 
@@ -15,8 +14,14 @@ agent.initFromConfig = function( config ) {
 
 	var jobs = config.getJobs();
 	for( i in jobs ) {
-		var JobClass = require('./job/' + jobs[ i ].name );
+		var jobName = jobs[ i ].name;
+		var JobClass = require( './job/' + jobName );
 		var job = new JobClass( jobs[ i ] );
+		
+		if( jobName == 'scheduler' ) {
+			agent._scheduler = job;
+		}
+
 		agent.use( job );
 	}
 
@@ -44,11 +49,6 @@ agent._run = function( config ) {
 	  	function (err, result) {
 	  		var workersCount = config.getWorkers();
 	  		var seedUrl = config.getSeedUrl();
-	  		
-	  		if( ! seedUrl ) {
-	  			var scheduler = new Scheduler();
-	  			var env = { agent: self };
-	  		}
 
 	  		if( typeof( seedUrl ) == 'object' ) {
 	  			self._runFromArray( seedUrl, 500 );
@@ -134,10 +134,12 @@ agent.worker = function(task, callback) {
 
 agent.onError = function( e, task, callback ) {
 	console.log(' * request error: ' + e.message + ' "' + task.href + '"');
-	var scheduler = new Scheduler();
+
 	var env = { agent: this };
-	
-	scheduler.execute( callback, null, env );
+
+	if( agent._scheduler ) {	
+		agent._scheduler.execute( callback, null, env );
+	}
 }
 
 agent.followRedirect = function( res, task, callback ) {
@@ -188,7 +190,7 @@ agent.onRequest = function( res, task, callback ) {
 		return;
 	}
 	
-	if( res.headers['content-type'] != undefined && res.headers['content-type'].match( /^text/ ) ) {
+	if( res.headers['content-type'] != undefined && res.headers['content-type'].match( /text/ ) ) {
 		res.setEncoding('utf8');
 	}
 	else {
@@ -198,14 +200,20 @@ agent.onRequest = function( res, task, callback ) {
 	res.on('data', function (chunk) {
 		if( this._data == undefined ) {
 			this._data = [];
+			this._dataSize = 0;
+		}
+
+		this._dataSize += chunk.length;
+		if( this._dataSize > 20971520 ) {
+			console.log( "Warning: big data download %dMB", this._dataSize / 1024 / 1024)
 		}
 
 		this._data.push( chunk );
 	});
 
 	res.on('end', function() {
-		var data = this._data;
-		self.handleData( data.join(''), task, res, callback );
+		var data = typeof( this._data ) == 'object' ? this._data.join('') : this._data;
+		self.handleData( data, task, res, callback );
 		this._data = null;
 	});
 }
@@ -218,11 +226,6 @@ agent.handleData = function( data, task, res, callback ) {
 			task: task,
 			res: res
 		};
-
-	var test = '';
-	for( var i = 0 ; i < 10000 ; i++ ) {
-		test += 'is it DELETED?? ';
-	}
 
 	if( env.res.headers['content-type'] != undefined && env.res.headers['content-type'].match( /^text\/html/) ) {
 		data = cheerio.load( data );
@@ -241,6 +244,22 @@ agent.handleData = function( data, task, res, callback ) {
 
 agent.getJobFunction = function( job, data, env ) {
 	return function( callback ) {
+		if( job.options.verbose ) {
+			agent.log( "before (" + env.task.href + ")", job);
+		}
+		
 		job.execute( callback, data, env );
+
+		agent.log( "after (" + env.task.href + ")", job);
+	}
+}
+
+agent.log = function( msg, obj ) {
+	if( obj.options == undefined ) {
+		console.dir( obj );
+	}
+
+	if( obj.options.verbose ) {
+		console.log( " - " + obj.options.name + ":: %s", msg );
 	}
 }

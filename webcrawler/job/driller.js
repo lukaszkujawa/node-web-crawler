@@ -23,13 +23,11 @@ function Driller(options) {
 }
 
 Driller.prototype.execute = function(callback, $, env) {
-	
-
 	if( typeof( $ ) != 'function' ) {
 		return callback();
 	}
 
-	if( env.res.headers['content-type'] == undefined || ! env.res.headers['content-type'].match( /^text\/html/) ) {
+	if( env.res.headers['content-type'] == undefined || ! env.res.headers['content-type'].match( /text\/html/) ) {
 		return callback();
 	}
 	
@@ -60,7 +58,12 @@ Driller.prototype.execute = function(callback, $, env) {
 		}
 	});
 	
-	async.parallel( docs, callback );
+	env.agent.log( "before inserting " + docs.length + " links", self );
+
+	async.parallel( docs, function(){
+		env.agent.log( "after inserting links", self );
+		callback();
+	});
 
 	docs = null;
 	$ = null;

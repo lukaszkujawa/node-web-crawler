@@ -67,7 +67,14 @@ WebDoc.prototype._insertAttachment = function( id, rev, callback ) {
 		return callback();
 	}
 	
-	db.attachment.insert( id, 'content', new Buffer( self._data, "binary" ), contentType, {rev: rev}, function(err, body) { 
+	if( contentType != undefined && contentType.match( /text/ ) ) {
+		var buffer = new Buffer( self._data, "utf8" );
+	}
+	else {
+		var buffer = new Buffer( self._data, "binary" );
+	}
+
+	db.attachment.insert( id, 'content', buffer, contentType, {rev: rev}, function(err, body) { 
 		callback();
 	});
 }
