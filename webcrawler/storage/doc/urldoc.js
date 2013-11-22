@@ -78,7 +78,7 @@ UrlDoc.prototype.setOverwrite = function( timeDiff ) {
 
 UrlDoc.prototype.getUrl = function() {
 	var f = this.fields;
-	return f.protocol + '://' + f.hostname + f.uri;
+	return f.protocol + '//' + f.hostname + f.uri;
 }
 
 UrlDoc.prototype.getId = function() {
@@ -125,7 +125,7 @@ UrlDoc.prototype.initFromObject = function( object ) {
 }
 
 UrlDoc.prototype.initFromUrl = function( url ) {
-	var parts = url.match( /(http[s]{0,1}):\/\/([^\/]+)($|\/.*)/ );
+	var parts = url.match( /(http[s]{0,1}:)\/\/([^\/]+)($|\/.*)/ );
 
 	if( parts ) {
 		this.fields.protocol = parts[1];
@@ -136,4 +136,8 @@ UrlDoc.prototype.initFromUrl = function( url ) {
 
 UrlDoc.prototype.getFields = function() {
 	return this.fields;
+}
+
+UrlDoc.prototype.getLastSource = function() {
+	return this.fields.source[this.fields.source.length - 1];
 }

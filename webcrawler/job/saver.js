@@ -7,14 +7,20 @@ function Saver(options) {
 }
 
 Saver.prototype.execute = function(callback, data, env) {
+	var task = env.task;
+	var source = [];
+	if( task.data != undefined && task.data.urlDoc != undefined ) {
+		source = [ task.data.urlDoc.getLastSource() ];
+	}
+
 	var webDoc = new WebDoc({
 		contentType: env.res.headers['content-type'],
 		length: env.res.headers['content-length'],
-		hostname: env.task.host,
-		uri: env.task.path,
-		port: env.task.port == null ? 80 : env.task.port,
-		protocol: env.task.protocol,
-		source: env.task.source == undefined ? null : env.task.source
+		hostname: task.host,
+		uri: task.path,
+		port: task.port == null ? 80 : task.port,
+		protocol: task.protocol,
+		source: source
 	});
 
 	if( typeof( data ) == 'function' ) {

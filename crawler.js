@@ -25,15 +25,15 @@ setInterval(function () {
 
 console.log( "" );
 
-if( argv.c == undefined ) {
-  console.log( "Usage: node crawler.js -c [config.json]" );
+if( argv._[0] == undefined ) {
+  console.log( "Usage: node crawler.js [config.json]" );
   console.log( "" );
-  console.log( "Example: node crawler.js -c [conf.example.json]" );
+  console.log( "Example: node crawler.js [conf.example.json]" );
   console.log( "" );
   process.exit(1);
 }
 
-var file = __dirname + '/' + argv.c;
+var file = __dirname + '/' + argv._[0];
 
 fs.readFile(file, 'utf8', function (err, data) {
 

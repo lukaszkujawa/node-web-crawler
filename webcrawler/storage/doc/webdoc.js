@@ -1,5 +1,6 @@
 var couchdb = require( '../couchdb' );
 var async = require( 'async' );
+var UrlDoc = require('./urldoc');
 
 exports = module.exports = WebDoc;
 
@@ -22,6 +23,44 @@ function WebDoc( options ) {
 	}
 }
 
+WebDoc.addSourceByUrl = function( url, source ) {
+	var urlDoc = new UrlDoc( url );
+	var id = WebDoc._getId( urlDoc.fields );
+
+	console.log( urlDoc.fields );
+	console.log( " add source: " + id );
+
+	WebDoc.getById( id, function(doc) {
+		if( ! doc ) {
+			doc = new WebDoc({
+				hostname: urlDoc.fields.hostname,
+				uri: urlDoc.fields.uri,
+				port: urlDoc.fields.port == null ? 80 : urlDoc.fields.port,
+				protocol: urlDoc.fields.protocol,
+				source: []
+			});
+		}
+
+		if( doc.fields.source.indexOf( source ) > -1 ) {
+			return;
+		}
+
+		doc.fields.source.push( source );
+		doc._insertDocument();
+	});
+}
+
+WebDoc.getById = function( id, callback ) {
+	couchdb.getDB().get( id, function( err, body ) {
+		if( err ) {
+			callback( false );
+		}
+		else {
+			callback( new WebDoc( body ) );
+		}
+	});
+}
+
 WebDoc.prototype.setData = function( data ) {
 	this._data = data;
 }
@@ -30,6 +69,19 @@ WebDoc.prototype.initFromObject = function( object ) {
 	for( i in object ) {
 		this.fields[ i ] = object[ i ];
 	}
+}
+
+WebDoc.prototype.save = function( callback ) {
+	var self = this;
+	self._insertDocument(function(err, id, rev ){
+		if( err ) {
+			this.fields._rev = rev;
+			self.save( callback );
+		}
+		else if( callback ) {
+			callback();
+		}
+	});
 }
 
 WebDoc.prototype.insert = function( callback ) {
@@ -54,8 +106,31 @@ WebDoc.prototype._insertDocument = function( callback ) {
 		id = self.getId();
 
 	db.insert( self.getFields(), id, function(err, body) {
-		callback( err, id, body != undefined ? body.rev : '1' );
+		if( err && err.error == 'conflict' ) {
+			WebDoc.getById( id, function(doc) {
+			   	self.fields._rev = doc.fields._rev;
+			   	self.mergeSources( doc );
+
+				self._insertDocument( callback );
+			});
+		}
+		else if( err ) {
+			console.log( err );
+		}
+		else if( callback ) {
+			callback( err, id, body != undefined ? body.rev : '1' );
+		}
 	});
+}
+
+WebDoc.prototype.mergeSources = function( doc ) {
+   	for( var i = doc.fields.source.length  - 1 ; i >= 0 ; i-- ) {
+   		if( this.fields.source.indexOf( doc.fields.source[ i ] ) ) {
+   			return;
+   		}
+
+   		this.fields.source.push( doc.fields.source[ i ] );
+   	}
 }
 
 WebDoc.prototype._insertAttachment = function( id, rev, callback ) {
@@ -85,7 +160,9 @@ WebDoc.prototype.getFields = function() {
 }
 
 WebDoc.prototype.getId = function() {
-	var f = this.fields;
-	
-	return 'doc-' + f.protocol +  f.port + '-' + f.hostname + f.uri;
+	return WebDoc._getId( this.fields );
+}
+
+WebDoc._getId = function( obj ) {
+	return 'doc-' + obj.protocol + obj.port + '-' + obj.hostname + obj.uri;
 }

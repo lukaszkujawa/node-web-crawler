@@ -15,7 +15,8 @@ Scheduler.prototype.execute = function(callback, data, env) {
 		}
 		
 		var data = {
-			source: doc.getSource()
+			source: doc.getSource(),
+			urlDoc: doc
 		};
 
 		env.agent.queue( doc.getUrl(), data );

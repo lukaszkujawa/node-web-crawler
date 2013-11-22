@@ -1,5 +1,6 @@
 var async = require( 'async' );
 var UrlDoc = require( '../storage/doc/urldoc' );
+var WebDoc = require( '../storage/doc/webdoc' );
 var cheerio = require('cheerio');
 var UrlTool = require('../utils/urltool');
 var VisittedUrls = require('../visittedurls');
@@ -38,6 +39,7 @@ Driller.prototype.execute = function(callback, $, env) {
 	}
 
 	var self = this,
+		urls = {},
 		docs = [];
 
 	$( self.options.selector ).each( function( i, el ) {
@@ -49,11 +51,12 @@ Driller.prototype.execute = function(callback, $, env) {
 
 		url = self.normaliseUrl( url, env );
 		
+		//self.addSourceToWebDoc( url, urls, env.task.href );
+
 		if( self.isValidUrl( url ) ) {
 			var doc = new UrlDoc( url );
-			
+
 			doc.setSourceFromEnv( env );
-			//ßdoc.setOverwrite( self.getOverwrite( url ) );
 			docs.push( self.getDocInsertFunction( doc ) );
 		}
 	});
@@ -67,6 +70,16 @@ Driller.prototype.execute = function(callback, $, env) {
 
 	docs = null;
 	$ = null;
+}
+
+Driller.prototype.addSourceToWebDoc = function( url, urls, source ) {
+	if( urls[ url ] != undefined || ! VisittedUrls.exists( url ) ) {
+		return;
+	}
+
+	urls[ url ] = 1;
+
+	WebDoc.addSourceByUrl( url, source );
 }
 
 Driller.prototype.addOverwriteRule = function( rule ) {

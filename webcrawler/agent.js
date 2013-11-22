@@ -85,7 +85,11 @@ agent._runFromString = function(seedUrl, workersCount, delay ) {
 
 agent.init = function( options ) {
 	var self = this;
-	this.options =
+	this.options = options;
+
+	http.globalAgent.maxSockets = 50;
+	https.globalAgent.maxSockets = 50;
+	
 	this.middleware = [];
 	this._queue = async.queue( function(task, callback) { 
 			self.worker(task, callback); 
@@ -101,7 +105,7 @@ agent.queue = function( url, data ) {
 		if( data != undefined ) {
 			task.data = data;
 		}
-		
+
 		self._queue.push( task );
 	});
 }
@@ -121,6 +125,8 @@ agent.worker = function(task, callback) {
     	task.rejectUnauthorized = false;
 	}
 
+	task.agent = false;
+	
 	var req = reqHandler.request(task, function(res) {
 		self.onRequest( res, task, callback );
 	});
