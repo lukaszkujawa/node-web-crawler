@@ -27,9 +27,6 @@ WebDoc.addSourceByUrl = function( url, source ) {
 	var urlDoc = new UrlDoc( url );
 	var id = WebDoc._getId( urlDoc.fields );
 
-	console.log( urlDoc.fields );
-	console.log( " add source: " + id );
-
 	WebDoc.getById( id, function(doc) {
 		if( ! doc ) {
 			doc = new WebDoc({

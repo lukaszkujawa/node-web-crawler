@@ -1,6 +1,6 @@
 var async = require( 'async' );
 var UrlDoc = require( '../storage/doc/urldoc' );
-var WebDoc = require( '../storage/doc/webdoc' );
+var SourceDoc = require( '../storage/doc/sourcedoc' );
 var cheerio = require('cheerio');
 var UrlTool = require('../utils/urltool');
 var VisittedUrls = require('../visittedurls');
@@ -51,7 +51,7 @@ Driller.prototype.execute = function(callback, $, env) {
 
 		url = self.normaliseUrl( url, env );
 		
-		//self.addSourceToWebDoc( url, urls, env.task.href );
+		self.addSourceToWebDoc( url, urls, env.task.href );
 
 		if( self.isValidUrl( url ) ) {
 			var doc = new UrlDoc( url );
@@ -78,8 +78,8 @@ Driller.prototype.addSourceToWebDoc = function( url, urls, source ) {
 	}
 
 	urls[ url ] = 1;
-
-	WebDoc.addSourceByUrl( url, source );
+	
+	SourceDoc.addSourceByUrl( url, source );
 }
 
 Driller.prototype.addOverwriteRule = function( rule ) {
