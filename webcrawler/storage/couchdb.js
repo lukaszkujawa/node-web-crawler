@@ -66,6 +66,10 @@ couchdb.createDesignDoc = function( callback ) {
 	   "views": {
 	       "all": {
 	           "map": "function(doc) {\n  if( doc.schema && doc.schema == 'document' ) {\n    emit(null, doc);\n  }\n}"
+	    	},
+
+	    	"source": {
+	    		"map": "function(doc) {\n if( doc.schema && doc.schema == 'source' ) {\n emit([doc.targetDoc, doc.sourceDoc], doc);\n  }\n}"
 	    	}
 		}
 	};

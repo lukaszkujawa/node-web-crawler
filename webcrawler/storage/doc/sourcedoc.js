@@ -19,6 +19,10 @@ function SourceDoc( options ) {
 }
 
 SourceDoc.addSourceByUrl = function(url, source) {
+	if( url == source ) {
+		return;
+	}
+	
 	var targetUrl = new UrlDoc( url );
 	var sourceUrl = new UrlDoc( source );
 

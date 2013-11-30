@@ -1,0 +1,24 @@
+{
+	"workers": 10,
+	"seedUrl": "http://systemsarchitect.net",
+	"database": {
+		"name": "web-crawler-sa",
+		"rebuild": true
+	},
+	
+	"jobs": [
+		
+		{ "name": "logger" },
+		
+		{ "name": "saver" },
+		
+		{ "name": "driller",
+			"maxDepth": false, 
+			"domainRestriction": "systemsarchitect.net",
+			"normalisers": [
+				{ "pattern": "\\?replytocom=[0-9]+#.*", "replacement": "" }
+			] },
+		
+		{ "name": "scheduler" }
+	]
+}

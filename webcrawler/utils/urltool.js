@@ -25,7 +25,10 @@ UrlTool.nomalise = function( url, env, plugins ) {
 
 	for( i in plugins ) {
 		var plugin = plugins[ i ];
-		if( url.match( plugin.rule ) ) {
+		if( plugin.replacement != undefined ) {
+			url = url.replace( plugin.pattern, plugin.replacement );
+		}
+		else if( url.match( plugin.rule ) ) {
 			url = plugin.process( url );
 		}
 	}

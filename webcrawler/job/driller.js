@@ -73,7 +73,7 @@ Driller.prototype.execute = function(callback, $, env) {
 }
 
 Driller.prototype.addSourceToWebDoc = function( url, urls, source ) {
-	if( urls[ url ] != undefined || ! VisittedUrls.exists( url ) ) {
+	if( urls[ url ] != undefined ) { 
 		return;
 	}
 
@@ -104,11 +104,22 @@ Driller.prototype.initOptions = function( options ) {
 			else if( i == "patterns" ) {
 				this.setPatterns( options[ i ] );
 			}
+			else if( i == "normalisers" ) {
+				this.setNormalasiers( options[ i ] );
+			}
 			else {
 				this.options[ i ] = options[ i ];
 			}
 		}
 	}
+}
+
+Driller.prototype.setNormalasiers = function( normalisers ) {
+	for( i in normalisers ) {
+		normalisers[ i ].pattern = new RegExp( normalisers[ i ].pattern, 'g' );
+	}
+
+	this.options.normalisers = normalisers;
 }
 
 Driller.prototype.setDomainRestriction = function( domain ) {
