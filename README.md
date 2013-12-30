@@ -1,4 +1,4 @@
-node-web-crawler
+Node Web Crawler
 ================
 Easy and fast Web Crawler
 
