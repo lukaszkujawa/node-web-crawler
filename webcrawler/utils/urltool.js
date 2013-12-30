@@ -23,6 +23,29 @@ UrlTool.nomalise = function( url, env, plugins ) {
 		url = env.task.protocol + url;
 	}
 
+	/**
+	 * handle go back "/../" 
+	 */
+	if( url.match(/\/\.\.\//)  ) {
+		var tmp = url.split('/');
+		for( var x = 3 ; x < tmp.length ; x++ ) {
+			if( tmp[x] == '..' ) {
+				delete tmp[x];
+			}
+			else if( tmp[ x + 1 ] != undefined && tmp[ x + 1 ] == '..' ) {
+				delete tmp[x];
+				delete tmp[x+1];
+				x += 1;	
+			}
+		}
+		url = tmp.join('/');
+		/*
+		while( url.match(/\/\.\.\//) ) {
+			url = url.replace( /[^\/]+\/\.\.\//, '' );
+		}
+		*/
+	}
+
 	for( i in plugins ) {
 		var plugin = plugins[ i ];
 		if( plugin.replacement != undefined ) {

@@ -4,7 +4,9 @@ module.exports.getEnv = function( url ) {
 
      return {
           task: Url.parse( url ),
-          agent: {},
+          agent: {
+          	log: function(){}
+          },
           res: {
                headers: {
                     "content-type": "text/html"

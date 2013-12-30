@@ -5,7 +5,7 @@ var Driller = require( '../../../webcrawler/job/driller' );
 var cheerio = require('cheerio');
 
 function drillerExecute( testFile, domainRestriction, env, callback ) {
-	var driller = new Driller({ domainRestriction: domainRestriction });
+	var driller = new Driller({ domainRestriction: domainRestriction, storeSource: false, verbose: false });
 	var docs = [];
 
 	driller.getDocInsertFunction = function( doc ) {
@@ -134,18 +134,6 @@ describe('Driller', function(){
 				done();
 			});
 
-		});
-
-		it('should attach url source to all documents', function(done){
-			VisittedUrls.setLinks( [] );
-			var env = helper.getEnv( 'http://www.example.com/view/1' );
-			
-			env.task.data = { source: [ 'http://www.example.com/1', 'http://www.example.com/2'] };
-			drillerExecute( '/html/site01.html', 'example.com', env, function(docs){
-				assert.equal( docs.length, 6 );
-				done();
-			});
-			
 		});
 
 	});
