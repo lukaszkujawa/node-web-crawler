@@ -11,6 +11,8 @@ couchdb.init = function(options) {
 
 	this.nano = require('nano')( this.options.host );
 	this.db = this.nano.use( this.options.dbname );
+	
+	couchdb._nano = this.nano;
 }
 
 couchdb.getDB = function() {

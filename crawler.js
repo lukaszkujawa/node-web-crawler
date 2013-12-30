@@ -1,34 +1,15 @@
-/*
-var heapdump = require('heapdump')
-var http = require('http');
-http.createServer(function (req, res) {
-  heapdump.writeSnapshot();
-  res.writeHead(200, {'Content-Type': 'text/plain'});
-  res.end("Dumped!");
-}).listen(9999);
-*/
-
 var argv = require('optimist').argv;
 var fs = require('fs');
 
 var agent = require('./webcrawler/agent');
 var Config = require( './webcrawler/config' );
 
-/*
-setInterval(function () {
-    if (typeof gc === 'function') {
-        gc();
-    }
-    console.log( process.memoryUsage());
-}, 60000);
-*/
-
 console.log( "" );
 
 if( argv._[0] == undefined ) {
   console.log( "Usage: node crawler.js [config.json]" );
   console.log( "" );
-  console.log( "Example: node crawler.js [conf.example.json]" );
+  console.log( "Example: node crawler.js conf.example.json" );
   console.log( "" );
   process.exit(1);
 }

@@ -8,7 +8,6 @@ var cheerio = require('cheerio');
 
 agent.initFromConfig = function( config ) {
 	var async = require( 'async' );
-	var job = require('./job');
 	
 	agent.init({ workers: config.getWorkers() });
 

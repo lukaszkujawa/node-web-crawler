@@ -17,7 +17,8 @@ function Driller(options) {
 		filters: [],
 		patterns: [],
 		verbose: false,
-		maxDepth: false
+		maxDepth: false,
+		storeSource: true
 	};
 
 	this.initOptions( options );
@@ -73,6 +74,10 @@ Driller.prototype.execute = function(callback, $, env) {
 }
 
 Driller.prototype.addSourceToWebDoc = function( url, urls, source ) {
+	if( ! this.options.storeSource ) {
+		return;
+	}
+
 	if( urls[ url ] != undefined ) { 
 		return;
 	}
@@ -124,7 +129,7 @@ Driller.prototype.setNormalasiers = function( normalisers ) {
 
 Driller.prototype.setDomainRestriction = function( domain ) {
 	var domain = domain.replace( /\./, '\.' );
-	domain = '^http[s]{0,1}:\/\/(([^\/]+?\\.)|())' + domain + '(\/|$)'; 
+	domain = '^http[s]{0,1}:\/\/(([^\/]+?\\.)|())' + domain + '(\/|:|$)'; 
 	this.options[ "domain" ] = new RegExp( domain, 'i' );
 }
 

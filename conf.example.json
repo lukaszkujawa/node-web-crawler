@@ -1,14 +1,16 @@
 {
-	"workers": 5,
-	"seedUrl": "http://stackoverflow.com/",
+	"workers": 2,
+	"seedUrl": "http://127.0.0.1:5984/_utils/docs/",
 	"database": {
-		"name": "web-crawler-so",
+		"name": "web-crawler-example2",
 		"rebuild": true
 	},
 	"jobs": [
 		{ "name": "logger" },
 		{ "name": "saver" },
-		{ "name": "driller", "domainRestriction": "stackoverflow.com" },
+		{ "name": "driller",
+			"domainRestriction": "127.0.0.1"
+		 },
 		{ "name": "scheduler" }
 	]
 }
