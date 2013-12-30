@@ -80,7 +80,7 @@ The above example uses 4 different jobs:
 
 The most important and robust job for finding new URLs to crawl. Driller accepts following options:
 
-* selector - (default: a) jQuery selector for finding tags with URLs to parse
+* selector - (default: a) CSS Selector for finding tags with URLs to parse
 * attribute - (default: href) name of an attribute which holds a URL to parse
 * domainRestriction - (default: null) restricts URLs to a particular domain
 * maxDepth - (default: false) number of subpages the crawler is allowed to visit
