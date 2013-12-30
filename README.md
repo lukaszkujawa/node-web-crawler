@@ -1,6 +1,6 @@
 Node Web Crawler
 ================
-Easy and fast Web Crawler
+Multipurpose web crawler in NodeJS.
 
 ## why NodeJs?
 
