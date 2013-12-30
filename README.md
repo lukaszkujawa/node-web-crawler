@@ -6,7 +6,7 @@ Multipurpose web crawler in NodeJS.
 
 Web Crawler spends most of his time on reading/writing to netwrok, database and files. NodeJs implements the non-blocking I/O model which makes it a perfect tool for the job. 
 
-## requirements
+## Requirements
 
 - NodeJs >= 0.10.21
 - CouchDB
