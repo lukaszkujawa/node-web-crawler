@@ -88,8 +88,8 @@ The most important and robust job for finding new URLs to crawl. Driller accepts
 ```
 "normalisers": [
                     { "pattern": "\\?replytocom=[0-9]+#.*", "replacement": "" }
-               ] }, 
-```
+               ] }
+``` 
 will remove “replytocom” parameter from every URL to avoid redundant visits.
 
 
