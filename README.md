@@ -74,7 +74,7 @@ Job is an action a worker will perform on every execution. Each job is a separat
 The above example uses 4 different jobs:
 - logger - echoes currently crawled URL
 - saver - saves document content to CouchDB (example key ```doc-http:5984-127.0.0.1:5984/_utils/docs/api-basics.html```
-- driller - looks for URLs to crawl and adds them to the jobs queue in CouchDB. The example configuration looks for “a” tag (jQuery syntax). Found URL will be added to the job queue only if it’s in the 127.0.0.1 domain.
+- driller - looks for URLs to crawl and adds them to the jobs queue in CouchDB. The example configuration looks for “a” tag (CSS Selector syntax). Found URL will be added to the job queue only if it’s in the 127.0.0.1 domain.
 
 ## Driller
 
