@@ -1,0 +1,21 @@
+{
+	"workers": 2,
+	"seedUrl": "http://www.reddit.com/r/node",
+	"database": {
+		"name": "reddit",
+		"host": "http://127.0.0.1:5984",
+		"rebuild": true
+	},
+	"jobs": [
+		{ "name": "logger" },
+		{ "name": "saver" },
+		{ "name": "driller",
+			"domainRestriction": "www.reddit.com",
+			"maxDepth": 1,
+			"selector": "a.title"
+		 },
+		{ "name": "scheduler" },
+		{ "name": "wait",
+			"seconds": 1 }
+	]
+}
