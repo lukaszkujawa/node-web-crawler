@@ -4,7 +4,7 @@ Multipurpose web crawler in NodeJS.
 
 ## Why NodeJs?
 
-Web Crawler spends most of its time on reading from/writing to netwrok, database or files. NodeJs implements the non-blocking I/O model which makes it a perfect tool for the job.
+Web Crawler spends most of its time on reading from/writing to network, database or files. NodeJs implements the non-blocking I/O model which makes it a perfect tool for the job.
 
 ## Requirements
 
