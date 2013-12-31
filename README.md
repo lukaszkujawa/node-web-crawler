@@ -1,12 +1,13 @@
+
 Node Web Crawler
 ================
 Multipurpose web crawler in NodeJS.
 
 ## Why NodeJs?
 
-Web Crawler spends most of its time on reading from/writing to netwrok, database or files. NodeJs implements the non-blocking I/O model which makes it a perfect tool for the job. 
+Web Crawler spends most of its time on reading from/writing to netwrok, database or files. NodeJs implements the non-blocking I/O model which makes it a perfect tool for the job.
 
-## Requirements
+## Requirements
 
 - NodeJs >= 0.10.21
 - CouchDB >= 1.2.0
@@ -32,7 +33,7 @@ $ sudo make install
 
 ## Run
 ```
-$ node crawler.js conf.example.json 
+$ node crawler.js conf.example.json
 ```
 
 ## Configuration
@@ -57,7 +58,7 @@ To run the crawler you need a profile which is a simple JSON configuration file.
            },
           { "name": "scheduler" }
      ]
-} 
+}
 
 ```
 
@@ -78,7 +79,27 @@ The above example uses 4 different jobs:
 
 ## Driller
 
-The most important and robust job for finding new URLs to crawl. Driller accepts following options:
+The most important and robust job for finding new URLs to crawl. Every URL is stored as a separate document and can be accessed with “url” view http://127.0.0.1:5984/example/_design/queue/_view/url/. The view will pick only those URLs which haven’t been crawled yet (visited == 0). Crawled URLs can be accessed with “crawled-url” view http://127.0.0.1:5984/example/_design/queue/_view/crawled-url/.
+
+Example URL doc:
+```
+{
+   "_id": "url-127.0.0.1:5984/_utils/docs/api-basics.html",
+   "_rev": "2-5c920c26537236955f529314b6e6608d",
+   "hostname": "127.0.0.1:5984",
+   "protocol": "http:",
+   "port": 80,
+   "uri": "/_utils/docs/api-basics.html",
+   "schema": "url",
+   "lastModified": "2013-12-30T11:43:34.449Z",
+   "visited": 0,
+   "source": [
+       "http://127.0.0.1:5984/_utils/docs/"
+   ]
+}
+``` 
+ 
+Driller accepts following options:
 
 * selector - (default: a) CSS Selector for finding tags with URLs to parse
 * attribute - (default: href) name of an attribute which holds a URL to parse
@@ -89,12 +110,51 @@ The most important and robust job for finding new URLs to crawl. Driller accepts
 "normalisers": [
                     { "pattern": "\\?replytocom=[0-9]+#.*", "replacement": "" }
                ] }
-``` 
+```
 will remove “replytocom” parameter from every URL to avoid redundant visits.
 
+# Scheduler
 
+Pulls a URL from the URLs view (http://127.0.0.1:5984/example/_design/queue/_view/url/) and schedules it for crawling. 
 
+## Saver
 
-The crawler will scrape your local copy of CouchDB manual and save it to "example" database. You can browse results at http://127.0.0.1:5984/_utils/database.html?example/_design/documents/_view/all
+Saved document in CouchDB.
 
+Example document:
+```
+{
+   "_id": "doc-http:5984-127.0.0.1:5984/_utils/docs/api-basics.html",
+   "_rev": "2-89371412df74744c3fd4e43487de5bfb",
+   "contentType": "text/html",
+   "lastModified": "2013-12-30T11:43:34.459Z",
+   "schema": "document",
+   "hostname": "127.0.0.1:5984",
+   "uri": "/_utils/docs/api-basics.html",
+   "port": "5984",
+   "protocol": "http:",
+   "source": [
+       "http://127.0.0.1:5984/_utils/docs/"
+   ],
+   "length": "31645",
+   "_attachments": {
+       "content": {
+           "content_type": "text/html",
+           "revpos": 2,
+           "digest": "md5-drB4cs1whPqdg5/IZYRmRg==",
+           "length": 31498,
+           "stub": true
+       }
+   }
+}
+``` 
 
+## Loger
+
+Echos URL to the console.
+
+# Wait
+
+Delays worker for a specified time period.
+
+* seconds - number of seconds to wait before going to a next job
