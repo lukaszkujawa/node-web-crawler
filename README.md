@@ -1,4 +1,3 @@
-
 Node Web Crawler
 ================
 Multipurpose web crawler in NodeJS.
@@ -119,7 +118,7 @@ Pulls a URL from the URLs view (http://127.0.0.1:5984/example/_design/queue/_vie
 
 ## Saver
 
-Saved document in CouchDB.
+Saves document in CouchDB.
 
 Example document:
 ```
