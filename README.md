@@ -4,12 +4,12 @@ Multipurpose web crawler in NodeJS.
 
 ## Why NodeJs?
 
-Web Crawler spends most of his time on reading/writing to netwrok, database and files. NodeJs implements the non-blocking I/O model which makes it a perfect tool for the job. 
+Web Crawler spends most of its time on reading from/writing to netwrok, database or files. NodeJs implements the non-blocking I/O model which makes it a perfect tool for the job. 
 
 ## Requirements
 
 - NodeJs >= 0.10.21
-- CouchDB
+- CouchDB >= 1.2.0
 
 ## Installation
 
@@ -20,7 +20,7 @@ $ cd node-web-crawler/
 $ npm install
 ```
 
-If you don't have the Node installed or apt-get returns an old version:
+If you don't have the Node installed or apt-get returns an old version you can compile it from the source:
 ```
 $ curl -O http://nodejs.org/dist/v0.10.24/node-v0.10.24.tar.gz
 $ tar -xzf node-v0.10.24.tar.gz
