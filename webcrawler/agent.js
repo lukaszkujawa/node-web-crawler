@@ -31,7 +31,7 @@ agent._run = function( config ) {
 	var couchdb = require( './storage/couchdb' ),
 		self = this;
 
-	couchdb.init({ dbname: config.getDatabaseName() });
+	couchdb.init({ dbname: config.getDatabaseName(), host: config.getDatabaseHost() });
 
 	async.waterfall([
 		function(callback){

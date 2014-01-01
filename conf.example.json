@@ -2,14 +2,16 @@
 	"workers": 2,
 	"seedUrl": "http://127.0.0.1:5984/_utils/docs/",
 	"database": {
-		"name": "web-crawler-example2",
+		"name": "example",
+		"host": "http://127.0.0.1:5984",
 		"rebuild": true
 	},
 	"jobs": [
 		{ "name": "logger" },
 		{ "name": "saver" },
 		{ "name": "driller",
-			"domainRestriction": "127.0.0.1"
+			"domainRestriction": "127.0.0.1",
+			"selector": "a"
 		 },
 		{ "name": "scheduler" }
 	]
