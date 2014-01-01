@@ -16,7 +16,7 @@ Saver.prototype.execute = function(callback, data, env) {
 	var webDoc = new WebDoc({
 		contentType: env.res.headers['content-type'],
 		length: env.res.headers['content-length'],
-		hostname: task.host,
+		hostname: task.hostname,
 		uri: task.path,
 		port: task.port == null ? 80 : task.port,
 		protocol: task.protocol,
