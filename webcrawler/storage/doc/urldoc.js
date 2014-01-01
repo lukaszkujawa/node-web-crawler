@@ -82,7 +82,7 @@ UrlDoc.prototype.getUrl = function() {
 }
 
 UrlDoc.prototype.getId = function() {
-	return 'url-' + this.fields.hostname + this.fields.uri;
+	return 'url-' + this.fields.hostname + ':' + this.fields.port + this.fields.uri;
 }
 
 UrlDoc.prototype.insert = function( callback ) {
@@ -125,12 +125,15 @@ UrlDoc.prototype.initFromObject = function( object ) {
 }
 
 UrlDoc.prototype.initFromUrl = function( url ) {
-	var parts = url.match( /(http[s]{0,1}:)\/\/([^\/]+)($|\/.*)/ );
+	var parts = url.match( /(http[s]{0,1}:)\/\/([^\/:]+)([:]{0,1}[0-9]*)($|\/.*)/ );
 
 	if( parts ) {
 		this.fields.protocol = parts[1];
 		this.fields.hostname = parts[2];
-		this.fields.uri = parts[3];
+		this.fields.uri = parts[4];
+		if( parts[3] > 0 ) {
+			this.fields.port = parts[3];
+		}
 	}
 }
 
