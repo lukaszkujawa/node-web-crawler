@@ -50,10 +50,10 @@ Driller.prototype.execute = function(callback, $, env) {
 			return;
 		}
 
-		url = self.normaliseUrl( url, env );
-		
-		self.addSourceToWebDoc( url, urls, env.task.href );
 
+		url = self.normaliseUrl( url, env );
+
+		self.addSourceToWebDoc( url, urls, env.task.href );
 		if( self.isValidUrl( url ) ) {
 			var doc = new UrlDoc( url );
 

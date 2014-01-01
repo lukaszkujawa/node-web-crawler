@@ -78,7 +78,14 @@ UrlDoc.prototype.setOverwrite = function( timeDiff ) {
 
 UrlDoc.prototype.getUrl = function() {
 	var f = this.fields;
-	return f.protocol + '//' + f.hostname + f.uri;
+	var url = f.protocol + '//' + f.hostname;
+
+	if( f.port != 80 ) {
+		url += ':' + f.port;
+	}
+	
+	url += f.uri;
+	return url
 }
 
 UrlDoc.prototype.getId = function() {
@@ -131,10 +138,11 @@ UrlDoc.prototype.initFromUrl = function( url ) {
 		this.fields.protocol = parts[1];
 		this.fields.hostname = parts[2];
 		this.fields.uri = parts[4];
-		if( parts[3] > 0 ) {
-			this.fields.port = parts[3];
+		if( parts[3] != '' ) {
+			this.fields.port = parts[3].replace(':','');
 		}
 	}
+
 }
 
 UrlDoc.prototype.getFields = function() {

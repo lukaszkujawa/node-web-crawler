@@ -1,6 +1,7 @@
 var UrlTool = exports = module.exports = {};
 
 UrlTool.nomalise = function( url, env, plugins ) {
+
 	/**
 	 *	attach domain name to "/article/test"
 	 */
