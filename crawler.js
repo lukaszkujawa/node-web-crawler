@@ -1,16 +1,15 @@
-var argv = require('optimist').argv;
-var fs = require('fs');
+var argv = require('optimist').argv,
+    fs = require('fs'),
+    agent = require('./webcrawler/agent'),
+    Config = require( './webcrawler/config' );
 
-var agent = require('./webcrawler/agent');
-var Config = require( './webcrawler/config' );
+console.log( '' );
 
-console.log( "" );
-
-if( argv._[0] == undefined ) {
-  console.log( "Usage: node crawler.js [config.json]" );
-  console.log( "" );
-  console.log( "Example: node crawler.js conf.example.json" );
-  console.log( "" );
+if( argv._[0] === undefined ) {
+  console.log( 'Usage: node crawler.js [config.json]' );
+  console.log( '' );
+  console.log( 'Example: node crawler.js conf.example.json' );
+  console.log( '' );
   process.exit(1);
 }
 
